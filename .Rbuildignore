@@ -1,0 +1,8 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^\.positai$
+^\.claude$
+^APP_DOCUMENTATION\.md$
+^build-plan\.md$
+^requirements\.md$
+^dev$

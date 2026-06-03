@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "draft-app",
+      "runtimeExecutable": "Rscript",
+      "runtimeArgs": [".claude/run_app.R"],
+      "port": 3838
+    }
+  ]
+}

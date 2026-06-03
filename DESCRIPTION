@@ -1,0 +1,29 @@
+Package: draft
+Title: Interactive Inline Reporting Helper for R Markdown and Quarto
+Version: 0.0.1
+Depends:
+    R (>= 4.1.0)
+Authors@R:
+    person("Rob", "Cavanaugh", email = "rb.cavanaugh@gmail.com", role = c("aut", "cre"))
+Description: Launches a local Shiny app that reads objects from the current R session
+    and makes it easy to write traceable inline R Markdown / Quarto reporting text.
+    Users can browse model parameters and data summaries, write prose with live-rendered
+    inline values, and copy raw inline code for pasting into their documents.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Imports:
+    shiny (>= 1.8.0),
+    bslib (>= 0.6.0),
+    parameters (>= 0.21.0),
+    insight (>= 0.19.0),
+    dplyr (>= 1.1.0),
+    htmltools (>= 0.5.0)
+Suggests:
+    testthat (>= 3.0.0),
+    lme4,
+    brms,
+    glmmTMB,
+    modelbased,
+    performance
+Config/roxygen2/version: 8.0.0

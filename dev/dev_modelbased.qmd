@@ -1,0 +1,105 @@
+---
+title: "dev — modelbased objects"
+format: html
+---
+
+## Setup
+
+```{r setup}
+library(modelbased)
+library(lme4)
+library(draft)
+```
+
+## Models
+
+```{r models}
+# Simple linear model — continuous predictors + moderator
+m_lm <- lm(mpg ~ wt + cyl + am, data = mtcars)
+
+# Model with a factor — needed for meaningful means and contrasts
+m_factor <- lm(mpg ~ factor(cyl) + wt, data = mtcars)
+
+# Mixed model — needed for estimate_grouplevel()
+m_lmer <- lmer(Reaction ~ Days + (Days | Subject), data = sleepstudy)
+```
+
+## estimate_means()
+
+Marginal means at each level of a factor predictor, averaging over other predictors.
+
+```{r estimate-means}
+means_cyl <- estimate_means(m_factor, by = "cyl")
+means_cyl
+
+class(means_cyl)
+names(means_cyl)
+```
+
+## estimate_contrasts()
+
+Pairwise differences between factor levels with CIs and p-values.
+
+```{r estimate-contrasts}
+contrasts_cyl <- estimate_contrasts(m_factor, contrast = "cyl")
+contrasts_cyl
+
+class(contrasts_cyl)
+names(contrasts_cyl)
+```
+
+## estimate_slopes()
+
+Marginal effect (slope) of a continuous predictor, optionally at levels of a moderator.
+
+```{r estimate-slopes}
+# Overall slope
+slopes_wt <- estimate_slopes(m_lm, trend = "wt")
+slopes_wt
+
+# Slope at each level of a moderator
+slopes_wt_by_am <- estimate_slopes(m_lm, trend = "wt", by = "am")
+slopes_wt_by_am
+
+class(slopes_wt)
+names(slopes_wt)
+names(slopes_wt_by_am)
+```
+
+## estimate_grouplevel()
+
+Random effect estimates per group from a mixed model.
+
+```{r estimate-grouplevel}
+group_fx <- estimate_grouplevel(m_lmer)
+group_fx
+
+class(group_fx)
+names(group_fx)
+```
+
+## What does draft see?
+
+```{r for-draft}
+# Column names across all four — drives chip generation in the inspector
+names(means_cyl)
+names(contrasts_cyl)
+names(slopes_wt)
+names(group_fx)
+
+# Are classes consistent enough to share a single inspector renderer?
+c(
+  means     = class(means_cyl)[1],
+  contrasts = class(contrasts_cyl)[1],
+  slopes    = class(slopes_wt)[1],
+  grouplevel = class(group_fx)[1]
+)
+```
+
+## draft::launch_app() — manual test
+
+Uncomment to launch the app and inspect these objects.
+
+```{r launch, eval=FALSE}
+draft::launch_app()
+```

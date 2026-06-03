@@ -1,0 +1,147 @@
+---
+title: "draft package demo"
+format: html
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r setup}
+library(draft)
+library(lme4)
+library(brms)
+set.seed(42)
+```
+
+## Simulate data
+
+120 participants nested in 6 clinics. Outcome is a cognitive score (continuous)
+and a recovery indicator (binary). Predictors: age, sex, treatment arm.
+
+```{r simulate}
+n_sites <- 6
+n_per   <- 20
+N       <- n_sites * n_per
+
+site        <- rep(paste0("site_", 1:n_sites), each = n_per)
+site_effect <- rep(rnorm(n_sites, 0, 0.4), each = n_per)
+
+age      <- round(rnorm(N, mean = 45, sd = 12))
+sex      <- factor(sample(c("male", "female"), N, replace = TRUE))
+tx       <- factor(sample(c("control", "treatment"), N, replace = TRUE))
+tx_num   <- as.integer(tx == "treatment")
+
+# Continuous outcome: cognitive score (0-100)
+score <- 55 + 3.5 * tx_num - 0.2 * age +
+         2.1 * (sex == "male") + site_effect + rnorm(N, 0, 8)
+score <- pmax(0, pmin(100, score))
+
+# Binary outcome: recovery (0/1)
+log_odds <- -0.5 + 1.2 * tx_num - 0.02 * age + site_effect
+recovery <- rbinom(N, 1, plogis(log_odds))
+
+dat <- data.frame(
+  id       = 1:N,
+  site     = site,
+  age      = age,
+  sex      = sex,
+  tx       = tx,
+  score    = round(score, 1),
+  recovery = recovery
+)
+```
+
+## Table 1
+
+```{r prep-data}
+stats <- draft::prep_data(dat)
+```
+
+Sample characteristics: the analytic sample included `r stats$age$n` participants
+(mean age = `r stats$age$mean`, SD = `r stats$age$sd`). The sample was
+`r stats$sex$female$pct`% female and `r stats$tx$treatment$pct`% were randomized
+to the treatment arm.
+
+## Linear model: cognitive score
+
+```{r lm}
+m_lm <- lm(score ~ tx + age + sex, data = dat)
+params_m_lm <- parameters::model_parameters(m_lm)
+results_lm <- draft::prep_params(params_m_lm)
+```
+
+In the linear model, treatment was associated with a
+`r results_lm$txtreatment$coefficient`-point increase in cognitive score
+(95% CI: `r results_lm$txtreatment$ci`, `r results_lm$txtreatment$p`).
+Each additional year of age was associated with a
+`r results_lm$age$coefficient`-point change in score (`r results_lm$age$p`).
+
+## Logistic regression: recovery
+
+```{r glm}
+m_glm <- glm(recovery ~ tx + age + sex, data = dat, family = binomial)
+params_m_glm <- parameters::model_parameters(m_glm)
+results_glm <- draft::prep_params(params_m_glm)
+```
+
+In the logistic regression, treatment was associated with greater odds of
+recovery (log-OR = `r results_glm$txtreatment$coefficient`,
+95% CI: `r results_glm$txtreatment$ci`, `r results_glm$txtreatment$p`).
+
+## Mixed model: score with site-level random intercepts
+
+```{r glmer}
+m_glmer <- lmer(score ~ tx + age + sex + (1 | site), data = dat)
+params_m_glmer <- parameters::model_parameters(m_glmer, effects = "fixed")
+results_glmer <- draft::prep_params(params_m_glmer)
+```
+
+Accounting for clustering within sites, the treatment effect on score was
+`r results_glmer$txtreatment$coefficient` (95% CI: `r results_glmer$txtreatment$ci`,
+`r results_glmer$txtreatment$p`).
+
+## Bayesian mixed model: recovery with site-level random intercepts
+
+Fast sampling settings for demo purposes (increase iter for real analyses).
+
+```{r brm, results='hide'}
+m_brm <- brm(
+  recovery ~ tx + age + sex + (1 | site),
+  data   = dat,
+  family = bernoulli(),
+  chains = 2,
+  iter   = 1000,
+  warmup = 400,
+  cores  = 2,
+  seed   = 42,
+  file = "m1.rds",
+  file_refit = "on_change",
+  silent = 2
+)
+params_m_brm <- parameters::model_parameters(m_brm, effects = "all")
+results_brm <- draft::prep_params(params_m_brm)
+```
+
+
+```{r}
+mycorr = correlation::correlation(data.frame(x = rnorm(10, 0, 1), y = rnorm(5, 5, 1)))
+```
+
+In the Bayesian model, the posterior median log-OR for treatment was
+`r results_brm$txtreatment$median`
+(95% CrI: `r results_brm$txtreatment$ci`,
+pd = `r results_brm$txtreatment$pd`).
+
+---
+
+## Launch draft app
+
+Run this interactively (not during render) to open the app with all
+objects above available for browsing:
+
+
+```{r launch, eval=FALSE}
+draft::launch_app()
+```
+

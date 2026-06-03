@@ -1,0 +1,85 @@
+---
+title: "dev — performance objects"
+format: html
+---
+
+## Setup
+
+```{r setup}
+library(performance)
+library(lme4)
+library(draft)
+```
+
+## Models
+
+```{r models}
+# Simple linear model
+m_lm <- lm(mpg ~ wt + cyl + am, data = mtcars)
+
+# Nested models for comparison
+m_lm_null <- lm(mpg ~ 1, data = mtcars)
+m_lm_wt   <- lm(mpg ~ wt, data = mtcars)
+m_lm_full <- lm(mpg ~ wt + cyl + am, data = mtcars)
+
+# Mixed model — r2() returns marginal + conditional (Nakagawa), also has ICC
+m_lmer <- lmer(Reaction ~ Days + (Days | Subject), data = sleepstudy)
+
+# Logistic model — r2() returns Tjur's R2
+m_glm <- glm(am ~ wt + hp, data = mtcars, family = binomial)
+```
+
+## model_performance()
+
+Full suite of fit indices for a single model. Includes R2, ICC (for mixed models),
+AIC, BIC, RMSE, Sigma, and more — varies by model type.
+
+```{r model-performance}
+perf_lm   <- model_performance(m_lm)
+perf_lmer <- model_performance(m_lmer)
+perf_glm  <- model_performance(m_glm)
+
+perf_lm
+perf_lmer
+perf_glm
+
+# Class and available fields — drives how the inspector renders chips
+class(perf_lm)
+names(perf_lm)
+
+class(perf_lmer)
+names(perf_lmer)   # should include R2_marginal, R2_conditional, ICC
+
+class(perf_glm)
+names(perf_glm)    # should include Tjur_R2, Log_loss, AUC
+```
+
+## compare_performance()
+
+Comparison table across nested or non-nested models, ranked by fit.
+
+```{r compare-performance}
+comparison <- compare_performance(m_lm_null, m_lm_wt, m_lm_full, rank = TRUE)
+comparison
+
+class(comparison)
+names(comparison)
+str(comparison)
+```
+
+## What does draft see?
+
+```{r for-draft}
+# Flatten to list — this is what the inspector will work from
+as.list(perf_lm)
+as.list(perf_lmer)
+as.data.frame(comparison)
+```
+
+## draft::launch_app() — manual test
+
+Uncomment to launch the app and inspect these objects.
+
+```{r launch, eval=FALSE}
+draft::launch_app()
+```
