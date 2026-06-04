@@ -8,7 +8,6 @@ project:
 
 website:
   title: "$ALTDOC_PACKAGE_NAME"
-  code-links: true
   navbar:
     search: true
     right:
@@ -37,7 +36,6 @@ website:
 
 format:
   html:
-    code-link: true
     theme:
-      light: flatly
-      dark: darkly
+      light: [cosmo, custom.scss]
+      dark: [superhero, custom.scss]

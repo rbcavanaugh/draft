@@ -74,14 +74,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-0a6b7249c26820e032cb0bd839ff02b1.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-3793a09f727e4166f67f05d827e59191.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-037af3b3434d3ab225dceef22aa2cb14.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-3793a09f727e4166f67f05d827e59191.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-5a7edf553ce6f37e40c66d907d0f4061.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-bf3f322ac8d240d639fe1d97eccc3f5a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-5a7edf553ce6f37e40c66d907d0f4061.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-bf6853a3a1642e25aeab31af8d7d79f1.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-9abdc79b722b8ffdc4bfa2ba936b1a2b.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-bf6853a3a1642e25aeab31af8d7d79f1.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -113,7 +113,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </head>
 
-<body class="nav-sidebar floating nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+<body class="nav-sidebar floating nav-fixed fullcontent quarto-light"><script id="quarto-html-before-body" type="application/javascript">
     const toggleBodyColorMode = (bsSheetEl) => {
       const mode = bsSheetEl.getAttribute("data-mode");
       const bodyEl = window.document.querySelector("body");
@@ -414,9 +414,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
-    <div class="quarto-code-links"><h2>Code Links</h2><ul><li><a href="undefined"><i class="bi bi-link-45deg"></i></a></li></ul></div></div>
+    
 <!-- main -->
 <main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
 
@@ -427,14 +425,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="draft" class="level1">
 <h1>draft</h1>
 <p><a href="https://github.com/rbcavanaugh/draft/actions/workflows/R-CMD-check.yaml"><img src="https://github.com/rbcavanaugh/draft/actions/workflows/R-CMD-check.yaml/badge.svg" class="img-fluid" alt="R-CMD-check"></a> <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" class="img-fluid" alt="License: MIT"></a> <a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" class="img-fluid" alt="Lifecycle: experimental"></a></p>
-<p><strong>draft</strong> is an R package that launches a local Shiny app to help you write traceable inline results in R Markdown and Quarto documents. It reads live objects from your current R session — models, data frames, and single values — and gives you:</p>
+<p><strong>draft</strong> is an R package that launches a local Shiny app to help you write traceable inline results in R Markdown and Quarto documents. It reads live objects from your current R session: models, data frames, and single values: and gives you:</p>
 <ul>
 <li>A browsable view of model parameters and data summaries</li>
 <li>Copyable inline reference paths (e.g.&nbsp;<code>{params_$wt$estimate}</code>)</li>
 <li>A live-rendering text editor where you type prose and see actual values</li>
 <li>A one-click setup chunk to paste into your <code>.qmd</code> or <code>.Rmd</code> file</li>
 </ul>
-<p>The app does <strong>not</strong> write to your document or interpret results. You do the thinking; draft removes the plumbing friction.</p>
+<p>The app does <strong>not</strong> write to your document or interpret results. You still have to do the thinking; draft removes the friction.</p>
 <hr>
 <section id="installation" class="level2">
 <h2 class="anchored" data-anchor-id="installation">Installation</h2>
@@ -450,19 +448,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>m1     <span class="ot">&lt;-</span> <span class="fu">lm</span>(mpg <span class="sc">~</span> wt <span class="sc">+</span> cyl, <span class="at">data =</span> mtcars)</span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>params <span class="ot">&lt;-</span> parameters<span class="sc">::</span><span class="fu">model_parameters</span>(m1)</span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Launch the app — it reads everything in your global environment</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Launch the app: it reads everything in your global environment</span></span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">launch_app</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>In the app:</p>
 <ol type="1">
-<li><p><strong>Environment panel (left)</strong> — click <code>params</code> to inspect it</p></li>
-<li><p><strong>Object inspector (centre)</strong> — see formatted parameter estimates with copy chips</p></li>
-<li><p><strong>Text editor (right)</strong> — write prose like:</p>
+<li><p><strong>Environment panel (left)</strong>: click <code>params</code> to inspect it</p></li>
+<li><p><strong>Object inspector (centre)</strong>: see formatted parameter estimates with copyable values</p></li>
+<li><p><strong>Text editor (right)</strong>: write prose like:</p>
 <pre><code>Weight was negatively associated with fuel economy
 (b = {params_$wt$estimate}, 95% CI {params_$wt$ci},
 p = {params_$wt$p}).</code></pre>
 <p>The app suggests <code>params_</code> as the list name (object name + trailing underscore).</p></li>
-<li><p>Click <strong>Copy inline code</strong> — the copied text uses <code>`r expr`</code> syntax, ready to paste into your <code>.qmd</code> or <code>.Rmd</code>.</p></li>
-<li><p>Click <strong>Copy setup chunk</strong> — copies the <code>prep_params()</code> call to put in your document’s setup chunk.</p></li>
+<li><p>Click <strong>Copy inline code</strong>: the copied text uses <code>`r expr`</code> syntax, ready to paste into your <code>.qmd</code> or <code>.Rmd</code>.</p></li>
+<li><p>Click <strong>Copy setup chunk</strong>: copies the <code>prep_params()</code> call to put in your document’s setup chunk.</p></li>
 </ol>
 <blockquote class="blockquote">
 <p><strong>Always re-render your full document to confirm results are reproducible.</strong></p>
@@ -472,8 +470,8 @@ p = {params_$wt$p}).</code></pre>
 <section id="standalone-helpers" class="level2">
 <h2 class="anchored" data-anchor-id="standalone-helpers">Standalone helpers</h2>
 <p>You can also use these functions directly in a <code>.qmd</code> setup chunk without launching the app:</p>
-<section id="prep_paramsparams_obj" class="level3">
-<h3 class="anchored" data-anchor-id="prep_paramsparams_obj"><code>prep_params(params_obj)</code></h3>
+<section id="model-parameters-prep_params" class="level3">
+<h3 class="anchored" data-anchor-id="model-parameters-prep_params">Model parameters: prep_params()</h3>
 <p>Converts a <code>parameters_model</code> object into a nested named list for inline reporting:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Setup chunk</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>params_m1 <span class="ot">&lt;-</span> parameters<span class="sc">::</span><span class="fu">model_parameters</span>(m1)</span>
@@ -483,8 +481,8 @@ p = {params_$wt$p}).</code></pre>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Weight: b = `r results$wt$estimate` (95% CI `r results$wt$ci`, p = `r results$wt$p`)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Each parameter is a sub-list containing all available formatted fields: <code>estimate</code>, <code>se</code>, <code>ci</code>, <code>ci_low</code>, <code>ci_high</code>, <code>p</code> (frequentist) or <code>pd</code>, <code>rope_pct</code> (Bayesian). Works with any model class supported by <code>parameters::model_parameters()</code>, including correlation matrices.</p>
 </section>
-<section id="prep_datadf" class="level3">
-<h3 class="anchored" data-anchor-id="prep_datadf"><code>prep_data(df)</code></h3>
+<section id="data-frame-summaries-prep_data" class="level3">
+<h3 class="anchored" data-anchor-id="data-frame-summaries-prep_data">Data frame summaries: prep_data()</h3>
 <p>Summarises a data frame into a nested named list for demographics reporting:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Setup chunk</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>stats <span class="ot">&lt;-</span> draft<span class="sc">::</span><span class="fu">prep_data</span>(demo_data)</span>
@@ -494,14 +492,14 @@ p = {params_$wt$p}).</code></pre>
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Female: `r stats$sex$female$pct`%</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Continuous columns return <code>mean</code>, <code>sd</code>, <code>median</code>, <code>min</code>, <code>max</code>, <code>n</code>, <code>n_missing</code>. Categorical columns return <code>n</code>, <code>n_missing</code>, and per-level <code>n</code> and <code>pct</code>.</p>
 </section>
-<section id="prep_modelbasedobj" class="level3">
-<h3 class="anchored" data-anchor-id="prep_modelbasedobj"><code>prep_modelbased(obj)</code></h3>
+<section id="marginal-means-and-contrasts-prep_modelbased" class="level3">
+<h3 class="anchored" data-anchor-id="marginal-means-and-contrasts-prep_modelbased">Marginal means and contrasts: prep_modelbased()</h3>
 <p>Converts <code>estimate_means</code>, <code>estimate_contrasts</code>, or <code>estimate_slopes</code> objects from the <code>modelbased</code> package:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>means_ <span class="ot">&lt;-</span> draft<span class="sc">::</span><span class="fu">prep_modelbased</span>(modelbased<span class="sc">::</span><span class="fu">estimate_means</span>(m1, <span class="st">"cyl"</span>))</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"># `r means_$x4$mean`, `r means_$x6$mean`, `r means_$x8$mean`</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="prep_performanceobj" class="level3">
-<h3 class="anchored" data-anchor-id="prep_performanceobj"><code>prep_performance(obj)</code></h3>
+<section id="model-performance-prep_performance" class="level3">
+<h3 class="anchored" data-anchor-id="model-performance-prep_performance">Model performance: prep_performance()</h3>
 <p>Converts <code>model_performance</code> or <code>compare_performance</code> output from the <code>performance</code> package:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>perf_ <span class="ot">&lt;-</span> draft<span class="sc">::</span><span class="fu">prep_performance</span>(performance<span class="sc">::</span><span class="fu">model_performance</span>(m1))</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"># R2 = `r perf_$r2`, RMSE = `r perf_$rmse`</span></span>
@@ -509,8 +507,8 @@ p = {params_$wt$p}).</code></pre>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>comp_ <span class="ot">&lt;-</span> draft<span class="sc">::</span><span class="fu">prep_performance</span>(performance<span class="sc">::</span><span class="fu">compare_performance</span>(m1, m2))</span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co"># `r comp_$m1$aic` vs `r comp_$m2$aic`</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="prep_effectsizeobj" class="level3">
-<h3 class="anchored" data-anchor-id="prep_effectsizeobj"><code>prep_effectsize(obj)</code></h3>
+<section id="effect-sizes-prep_effectsize" class="level3">
+<h3 class="anchored" data-anchor-id="effect-sizes-prep_effectsize">Effect sizes: prep_effectsize()</h3>
 <p>Converts an <code>effectsize_table</code> object (e.g.&nbsp;<code>cohens_d()</code>, <code>eta_squared()</code>, <code>cramers_v()</code>) into a named list:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>es_ <span class="ot">&lt;-</span> draft<span class="sc">::</span><span class="fu">prep_effectsize</span>(effectsize<span class="sc">::</span><span class="fu">cohens_d</span>(mpg <span class="sc">~</span> am, <span class="at">data =</span> mtcars))</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># `r es_$cohens_d`, 95% CI [`r es_$ci_low`, `r es_$ci_high`]</span></span>
@@ -519,8 +517,8 @@ p = {params_$wt$p}).</code></pre>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co"># `r eta_$cyl$eta2`, `r eta_$gear$eta2`</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Single-effect objects return a flat list; multi-effect objects (e.g.&nbsp;<code>eta_squared</code> with several predictors) return a nested list keyed by the <code>Parameter</code> column.</p>
 </section>
-<section id="prep_distributionobj" class="level3">
-<h3 class="anchored" data-anchor-id="prep_distributionobj"><code>prep_distribution(obj)</code></h3>
+<section id="distribution-summaries-prep_distribution" class="level3">
+<h3 class="anchored" data-anchor-id="distribution-summaries-prep_distribution">Distribution summaries: prep_distribution()</h3>
 <p>Converts <code>datawizard::describe_distribution()</code> output into a named list for inline reporting:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>dist_ <span class="ot">&lt;-</span> draft<span class="sc">::</span><span class="fu">prep_distribution</span>(datawizard<span class="sc">::</span><span class="fu">describe_distribution</span>(mtcars))</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co"># `r dist_$mpg$mean`, SD = `r dist_$mpg$sd`</span></span>
@@ -620,7 +618,7 @@ p = {params_$wt$p}).</code></pre>
 <tr class="odd">
 <td><code>parameters</code></td>
 <td>Supported</td>
-<td>Core — all model types with a <code>parameters_model</code> class</td>
+<td>Core: all model types with a <code>parameters_model</code> class</td>
 </tr>
 <tr class="even">
 <td><code>correlation</code></td>
@@ -645,7 +643,7 @@ p = {params_$wt$p}).</code></pre>
 <tr class="even">
 <td><code>datawizard</code></td>
 <td>Supported</td>
-<td><code>describe_distribution()</code> — flat and stratified (grouped) output</td>
+<td><code>describe_distribution()</code>: flat and stratified (grouped) output</td>
 </tr>
 </tbody>
 </table>
