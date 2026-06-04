@@ -1,0 +1,362 @@
+# Getting Started with draft
+
+## Overview
+
+Writing a results section means translating your R objects into prose,
+keeping that prose accurate any time your data or analysis updates, and
+avoiding errors in transcribing values from your data into prose.
+`draft` is a local Shiny app that makes this process systematic. It
+reads objects from your R environment, structures their values into
+stable named lists, and gives you a live text editor where inline
+references resolve as you type.
+
+When you’re done writing, you copy two things into your `.qmd` or `.Rmd`
+document: a small setup chunk that rebuilds the lists, and inline
+references like `params_m1_$wt$coefficient` that render correctly every
+time you knit.
+
+`draft` leverages the `easystats` suite of packages
+(<https://easystats.github.io/easystats/>) which have a systematic and
+consistent structure, relatively few dependencies, and coverage for many
+different model types and analytical approaches in R. `draft` also
+supports reporting of bespoke dataframes you create or other values in
+your R environment.
+
+## Installation
+
+``` r
+
+# Install from GitHub
+remotes::install_github("rbcavanaugh/reproducible-reporting")
+```
+
+`draft` works best alongside the
+[easystats](https://easystats.github.io/easystats/) packages. Install
+the ones you use:
+
+``` r
+
+install.packages(c("parameters", "effectsize", "modelbased", "performance", "correlation"))
+```
+
+## A simple workflow
+
+The workflow has three steps:
+
+1.  **Run your analysis** as you normally would. Fit models, compute
+    effect sizes, prepare data summaries.
+2.  **Open the app** by calling
+    [`draft::launch_app()`](https://rbcavanaugh.github.io/draft/reference/launch_app.md).
+    It reads everything in your current environment.
+3.  **Write and copy.** Browse your objects in the left panel, write
+    prose in the editor, and copy the setup chunk and inline references
+    into your document.
+
+``` r
+
+library(draft)
+library(parameters)
+
+m1        <- lm(mpg ~ wt + cyl, data = mtcars)
+params_m1 <- model_parameters(m1)
+
+launch_app()
+```
+
+Select `params_m1` from the environment panel. The inspector shows each
+predictor as a row of copyable chips. Click a chip to copy the path,
+paste it into the editor, and the live preview renders the value
+immediately. You might write something like:
+
+    Weight was negatively associated with fuel economy
+    (b = {params_m1_$wt$coefficient}, 95% CI [{params_m1_$wt$ci_low},
+    {params_m1_$wt$ci_high}], p = {params_m1_$wt$p}).
+
+Clicking **Copy chunk** produces the setup code to paste into your
+document:
+
+
+    ``` r
+    params_m1_ <- draft::prep_params(params_m1)
+    ```
+
+------------------------------------------------------------------------
+
+## Working with `parameters`
+
+[`model_parameters()`](https://easystats.github.io/parameters/reference/model_parameters.html)
+is the main entry point for regression models. It works consistently
+across `lm`, `glm`, `lmer`, `glmer`, `brms`, and many others — the
+output always has the same structure, and `draft` handles all of them
+the same way.
+
+``` r
+
+library(parameters)
+
+# Linear model
+params_lm   <- model_parameters(lm(mpg ~ wt + cyl, data = mtcars))
+
+# Logistic regression
+params_glm  <- model_parameters(glm(am ~ wt + hp, data = mtcars, family = binomial))
+
+# Mixed model
+library(lme4)
+params_lmer <- model_parameters(lmer(Reaction ~ Days + (Days | Subject),
+                                     data = sleepstudy), effects = "fixed")
+
+# Bayesian — same workflow, different field names (median, pd instead of coefficient, p)
+# params_bayes <- model_parameters(brm(...))
+```
+
+The inline path pattern is always `list_name_$term$field`. Field names
+vary by model type — frequentist models produce `coefficient` and `p`;
+Bayesian models produce `median` and `pd`. **The inspector always shows
+you the exact field names for your specific model** — check there rather
+than assuming.
+
+Correlation matrices from the `correlation` package work too, since
+`correlation()` returns a `parameters_model` object:
+
+``` r
+
+library(correlation)
+corr_matrix <- correlation(mtcars[, 1:4])
+# e.g. corr_matrix_$mpg_wt$r, corr_matrix_$mpg_wt$p
+```
+
+**The app doesn’t control your statistics.** Confidence levels,
+standardization, and any other options stay in your script. To use 89%
+CIs instead of 95%:
+
+``` r
+
+params_lm_89  <- model_parameters(m1, ci = 0.89)
+params_lm_std <- model_parameters(m1, standardize = "refit")
+```
+
+Relaunch the app after changing your script to see updated values.
+
+------------------------------------------------------------------------
+
+## Working with `effectsize`
+
+Effect size objects come in two shapes depending on the function.
+
+**Single-effect functions** (e.g. `cohens_d()`, `cramers_v()`) return a
+single-row result that preps into a **flat** named list — the path goes
+directly to the field:
+
+``` r
+
+library(effectsize)
+
+es_d <- cohens_d(mpg ~ am, data = mtcars)
+# es_d_$cohens_d, es_d_$ci_low, es_d_$ci_high
+
+es_v <- cramers_v(table(mtcars$cyl, mtcars$gear))
+# es_v_$cramers_v_adjusted, es_v_$ci_low
+```
+
+**Multi-effect functions** (e.g. `eta_squared()` with several
+predictors) return one row per predictor and prep into a **nested** list
+keyed by predictor name:
+
+``` r
+
+es_eta <- eta_squared(aov(mpg ~ cyl + gear, data = mtcars))
+# es_eta_$cyl$eta2_partial, es_eta_$cyl$ci_low
+# es_eta_$gear$eta2_partial
+```
+
+Conversion functions like `d_to_r()` return plain numeric scalars rather
+than effectsize objects. They appear in the environment panel as scalar
+values (see [Working with scalars](#working-with-scalars) below).
+
+------------------------------------------------------------------------
+
+## Working with `modelbased`
+
+`modelbased` produces marginal means, contrasts, and slopes — each
+prepped into a named list keyed by the relevant level or comparison.
+
+``` r
+
+library(modelbased)
+
+m <- lm(mpg ~ factor(cyl) + wt, data = mtcars)
+
+# Marginal means — one entry per level
+means_cyl     <- estimate_means(m, at = "cyl")
+# means_cyl_$`4`$mean, means_cyl_$`6`$mean
+
+# Contrasts — keys use the _vs_ pattern
+contrasts_cyl <- estimate_contrasts(m, contrast = "cyl")
+# contrasts_cyl_$`4_vs_6`$difference, contrasts_cyl_$`4_vs_6`$ci_low
+
+# Marginal slopes
+m_int      <- lm(mpg ~ wt * factor(cyl), data = mtcars)
+slopes_wt  <- estimate_slopes(m_int, trend = "wt", at = "cyl")
+# slopes_wt_$`4`$coefficient, slopes_wt_$`6`$coefficient
+```
+
+Keys come directly from your factor level names. Descriptive levels like
+`"control"` and `"treatment"` produce readable paths; numeric levels
+like `4`, `6`, `8` need backtick-quoting in `$` paths — the inspector
+handles this automatically when you click a chip.
+
+------------------------------------------------------------------------
+
+## Working with `performance`
+
+[`model_performance()`](https://easystats.github.io/performance/reference/model_performance.html)
+returns a flat list of fit indices for a single model.
+[`compare_performance()`](https://easystats.github.io/performance/reference/compare_performance.html)
+returns a nested list keyed by model name.
+
+``` r
+
+library(performance)
+
+perf_lm    <- model_performance(m1)
+# perf_lm_$r2, perf_lm_$aic, perf_lm_$rmse
+
+comparison <- compare_performance(
+  m_null <- lm(mpg ~ 1, data = mtcars),
+  m_full <- lm(mpg ~ wt + cyl + am, data = mtcars)
+)
+# comparison_$m_full$aic, comparison_$m_full$r2
+```
+
+Available indices depend on the model type — mixed models include ICC,
+logistic models include Tjur’s R². The inspector shows exactly what your
+model provides.
+
+------------------------------------------------------------------------
+
+## Working with `datawizard`
+
+[`datawizard::describe_distribution()`](https://easystats.github.io/datawizard/reference/describe_distribution.html)
+produces a distribution summary table. `draft` supports both the plain
+(unstratified) and stratified (`by =`) forms.
+
+**Unstratified** — one entry per variable, flat list:
+
+``` r
+
+library(datawizard)
+
+dist_baseline <- describe_distribution(df[, c("age", "anxiety", "sleep")])
+# dist_baseline_$age$mean, dist_baseline_$age$sd
+# dist_baseline_$sleep$median
+```
+
+**Stratified** — the most common use: one entry per group, then per
+variable:
+
+``` r
+
+dist_by_condition <- describe_distribution(
+  df[, c("age", "sleep", "condition")],
+  by = "condition"
+)
+# dist_by_condition_$control$age$mean
+# dist_by_condition_$treatment$sleep$sd
+```
+
+Multiple `by` variables are supported; group keys are pasted together
+with `_`. Note that column names with dots (`Sepal.Length`) become
+compacted keys (`sepallength`) — check the inspector for the exact key
+names.
+
+------------------------------------------------------------------------
+
+## Working with data frames
+
+Any `data.frame` or tibble in your environment appears in the
+environment panel. `draft` summarises each column automatically:
+
+- **Continuous columns** (numeric with more than 10 unique values) —
+  `mean`, `sd`, `median`, `min`, `max`, `n`, `n_missing`
+- **Categorical columns** (factor, character, or numeric with ≤ 10
+  unique values) — `n` and `n_missing` overall, plus `n` and `pct` per
+  level
+- **High-cardinality factor/character columns** (e.g. subject IDs,
+  free-text) — excluded; no meaningful summary to copy
+
+``` r
+
+# prep_data() is what the app calls — you can also call it directly
+desc_ <- draft::prep_data(mtcars)
+
+# desc_$mpg$mean, desc_$mpg$sd
+# desc_$cyl$`4`$n, desc_$cyl$`4`$pct
+```
+
+The threshold between continuous and categorical defaults to 10 unique
+values and can be adjusted:
+
+``` r
+
+desc_ <- draft::prep_data(my_df, cat_threshold = 20)
+```
+
+------------------------------------------------------------------------
+
+## Working with scalars
+
+Any single value — numeric, character, or logical — assigned to a
+variable appears in the environment panel as a scalar. No setup code is
+needed. Reference it directly by name in your prose:
+
+``` r
+
+n_participants <- 120
+study_site     <- "Pittsburgh"
+
+# {n_participants} participants were recruited from {study_site}.
+# → 120 participants were recruited from Pittsburgh.
+```
+
+Numeric scalars are displayed rounded to two decimal places. Conversion
+functions from `effectsize` land here:
+
+``` r
+
+es_d   <- cohens_d(mpg ~ am, data = mtcars)
+d_as_r <- d_to_r(es_d$Cohens_d)
+# d_as_r appears as a scalar ≈ 0.24
+```
+
+------------------------------------------------------------------------
+
+## Tips
+
+- **Everything inside [`{}`](https://rdrr.io/r/base/Paren.html) is
+  evaluated as R.** You are not limited to plain variable names — any
+  valid R expression works. To report a proportion as a percentage,
+  write `{my_value * 100}%` in the editor. Other examples: `{abs(b)}` to
+  drop a sign, `{n - 1}` for degrees of freedom,
+  `{ifelse(p < .05, "significant", "non-significant")}` for conditional
+  language.
+
+- **The app has no statistical settings of its own.** All decisions
+  about what to report — confidence level, effect size type,
+  standardization — live in your script as function arguments. Change
+  them there and relaunch.
+
+- **Check field names in the inspector.** Field names vary by model type
+  and package version. The inspector shows the exact names for your
+  specific object; always check there rather than relying on
+  documentation examples.
+
+- **The trailing underscore is intentional.** The prep list for
+  `params_m1` is stored as `params_m1_`. The underscore distinguishes it
+  from the original model object in your prose and prevents name
+  collisions.
+
+- **Numeric formatting follows APA style automatically.** Non-p values
+  are rounded to two decimal places and scientific notation is
+  suppressed. P-values are formatted to three decimal places with
+  `< .001` below the threshold. You do not need to round values yourself
+  in the editor.
