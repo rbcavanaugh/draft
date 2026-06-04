@@ -41,14 +41,9 @@ install.packages(c("parameters", "effectsize", "modelbased", "performance", "cor
 
 ## A simple workflow
 
-The workflow has three steps:
+**Step 1: Run your analysis as normal**
 
-1. **Run your analysis** as you normally would. Fit models, compute effect
-   sizes, prepare data summaries.
-2. **Open the app** by calling `draft::launch_app()`. It reads everything in
-   your current environment.
-3. **Write and copy.** Browse your objects in the left panel, write prose in
-   the editor, and copy the setup chunk and inline references into your document.
+Fit your models and prepare your objects in R. Nothing special required.
 
 ```{r basic, eval = FALSE}
 library(draft)
@@ -56,14 +51,26 @@ library(parameters)
 
 m1        <- lm(mpg ~ wt + cyl, data = mtcars)
 params_m1 <- model_parameters(m1)
+```
 
+**Step 2: Launch the app**
+
+```{r launch, eval = FALSE}
 launch_app()
 ```
 
-Select `params_m1` from the environment panel. The inspector shows each
-predictor as a row of copyable chips. Click a chip to copy the path, paste it
-into the editor, and the live preview renders the value immediately. You might
-write something like:
+The app reads everything in your current environment automatically.
+
+**Step 3: Browse your objects**
+
+In the left panel, click `params_m1`. The inspector shows each predictor as a
+row of values (estimate, SE, CI, p). Each shows the value and the path you'd
+use to reference it inline.
+
+**Step 4: Write prose in the editor**
+
+In the right panel, type your results sentence. Use `{...}` to insert inline
+references — click the value you want to reference and paste the path in:
 
 ```
 Weight was negatively associated with fuel economy
@@ -71,13 +78,38 @@ Weight was negatively associated with fuel economy
 {params_m1_$wt$ci_high}], p = {params_m1_$wt$p}).
 ```
 
-Clicking **Copy chunk** produces the setup code to paste into your document:
+The preview below the editor renders the actual values as you type, so you can
+see exactly what will appear in your document.
 
-````
-```{r}
+**Step 5: Copy the inline code**
+
+Click **Copy inline code**. The `{...}` delimiters are converted to backtick-r
+inline expressions — paste the result directly into your `.qmd` or `.Rmd`:
+
+```{r show-rmd-output, eval=TRUE, echo=FALSE, results='asis'}
+cat("```\nWeight was negatively associated with fuel economy\n",
+    "(b = `r params_m1_$wt$coefficient`, 95% CI [`r params_m1_$wt$ci_low`,\n",
+    "`r params_m1_$wt$ci_high`], p = `r params_m1_$wt$p`).\n```",
+    sep = "")
+```
+
+**Step 6: Copy the setup chunk**
+
+Click **Copy chunk**. This gives you the setup code that rebuilds the list —
+paste it into your document's setup chunk:
+
+```{r setup-chunk, eval = FALSE}
 params_m1_ <- draft::prep_params(params_m1)
 ```
-````
+
+**Step 7: Re-render your document**
+
+Knit or render your `.qmd`/`.Rmd` from scratch to confirm the values resolve
+correctly and match what you saw in the app.
+
+> The app never writes to your document. You paste two things: the setup chunk
+> (once, in your setup block) and the inline references (wherever you report
+> results). Everything else stays in your script.
 
 ---
 
@@ -192,7 +224,7 @@ slopes_wt  <- estimate_slopes(m_int, trend = "wt", at = "cyl")
 Keys come directly from your factor level names. Descriptive levels like
 `"control"` and `"treatment"` produce readable paths; numeric levels like `4`,
 `6`, `8` need backtick-quoting in `$` paths — the inspector handles this
-automatically when you click a chip.
+automatically when you click to copy a value.
 
 ---
 
