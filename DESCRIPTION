@@ -27,6 +27,7 @@ Suggests:
     brms,
     glmmTMB,
     modelbased,
+    marginaleffects,
     performance,
     effectsize,
     datawizard,

@@ -8,6 +8,7 @@
 # All tests skip if modelbased is not installed.
 
 skip_if_not_installed("modelbased")
+skip_if_not_installed("marginaleffects")
 library(modelbased)
 
 # --- Shared fixtures -------------------------------------------------------
