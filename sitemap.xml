@@ -1,11 +1,9 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://rbcavanaugh.github.io/draft/404.html</loc></url>
-<url><loc>https://rbcavanaugh.github.io/draft/APP_DOCUMENTATION.html</loc></url>
 <url><loc>https://rbcavanaugh.github.io/draft/LICENSE-text.html</loc></url>
 <url><loc>https://rbcavanaugh.github.io/draft/articles/getting-started.html</loc></url>
 <url><loc>https://rbcavanaugh.github.io/draft/articles/index.html</loc></url>
 <url><loc>https://rbcavanaugh.github.io/draft/authors.html</loc></url>
-<url><loc>https://rbcavanaugh.github.io/draft/build-plan.html</loc></url>
 <url><loc>https://rbcavanaugh.github.io/draft/index.html</loc></url>
 <url><loc>https://rbcavanaugh.github.io/draft/reference/classify_object.html</loc></url>
 <url><loc>https://rbcavanaugh.github.io/draft/reference/get_all_handlers.html</loc></url>
@@ -23,6 +21,5 @@
 <url><loc>https://rbcavanaugh.github.io/draft/reference/prep_performance.html</loc></url>
 <url><loc>https://rbcavanaugh.github.io/draft/reference/register_handler.html</loc></url>
 <url><loc>https://rbcavanaugh.github.io/draft/reference/sanitize_key.html</loc></url>
-<url><loc>https://rbcavanaugh.github.io/draft/requirements.html</loc></url>
 </urlset>
 
