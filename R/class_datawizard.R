@@ -1,6 +1,6 @@
 # class_datawizard.R
 #
-# Everything draft needs to handle datawizard distribution summary objects —
+# Everything draft needs to handle datawizard distribution summary objects --
 # the output of describe_distribution() from the datawizard package.
 #
 # Two shapes depending on whether a `by` argument was used:
@@ -16,7 +16,7 @@
 # The `Variable` column is always present. Any columns that appear before it
 # are the grouping variables from the `by` argument.
 #
-# Column names are never hardcoded — all numeric columns after `Variable`
+# Column names are never hardcoded -- all numeric columns after `Variable`
 # become fields automatically.
 #
 # Exports: prep_distribution()
@@ -218,7 +218,7 @@ register_handler(
     n   <- length(unique(df$Variable))
     by  <- setdiff(names(df)[seq_len(which(names(df) == "Variable") - 1)], character(0))
     if (length(by) > 0) {
-      paste0(n, " vars × ", length(unique(df[[by[1]]])), " groups")
+      paste0(n, " vars x ", length(unique(df[[by[1]]])), " groups")
     } else {
       paste0(n, " variables")
     }

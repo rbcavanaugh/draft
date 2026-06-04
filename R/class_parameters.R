@@ -85,7 +85,7 @@ render_model_inspector <- function(data) {
     if (!is.null(param$parameter)) {
       param$parameter
     } else if (!is.null(param$parameter1) && !is.null(param$parameter2)) {
-      paste0(param$parameter1, " × ", param$parameter2)
+      paste0(param$parameter1, " x ", param$parameter2)
     } else {
       NULL
     }

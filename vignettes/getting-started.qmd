@@ -1,19 +1,10 @@
 ---
 title: "Getting Started with draft"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Getting Started with draft}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+format: html
+execute:
+  eval: false
+  echo: true
 ---
-
-```{r setup, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment  = "#>",
-  eval     = FALSE
-)
-```
 
 ## Overview
 
@@ -37,7 +28,7 @@ dataframes you create or other values in your R environment.
 
 ```{r install, eval = FALSE}
 # Install from GitHub
-remotes::install_github("rbcavanaugh/reproducible-reporting")
+remotes::install_github("rbcavanaugh/draft")
 ```
 
 `draft` works best alongside the

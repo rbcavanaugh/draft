@@ -13,7 +13,7 @@
 load_sample_objects <- function(env) {
   tryCatch({
 
-    m <- lm(Sepal.Length ~ Petal.Length + Species, data = iris)
+    m <- stats::lm(Sepal.Length ~ Petal.Length + Species, data = datasets::iris)
 
     # parameters — works with base parameters package (always available)
     if (requireNamespace("parameters", quietly = TRUE)) {
@@ -27,11 +27,11 @@ load_sample_objects <- function(env) {
 
     # correlation — on numeric iris columns
     if (requireNamespace("correlation", quietly = TRUE)) {
-      env$sample_corr <- correlation::correlation(iris[, 1:4])
+      env$sample_corr <- correlation::correlation(datasets::iris[, 1:4])
     }
 
     # plain data frame — always works
-    env$sample_data <- iris[, 1:4]
+    env$sample_data <- datasets::iris[, 1:4]
 
   }, error = function(e) {
     # If sample objects fail for any reason, silently continue —

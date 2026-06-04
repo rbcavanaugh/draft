@@ -179,6 +179,10 @@ Supports both flat (no `by` argument) and stratified (with `by` argument) shapes
 | `insight` | Model detection and value formatting |
 | `dplyr` | Data frame manipulation |
 | `htmltools` | Safe HTML rendering |
+| `effectsize` | Effect size objects (suggested) |
+| `datawizard` | Distribution descriptions (suggested) |
+| `modelbased` | Marginal means and contrasts (suggested) |
+| `performance` | Model performance metrics (suggested) |
 
 ---
 
@@ -193,6 +197,7 @@ Supports both flat (no `by` argument) and stratified (with `by` argument) shapes
 | `modelbased` | Supported | `estimate_means()`, `estimate_contrasts()`, `estimate_slopes()` |
 | `performance` | Supported | `model_performance()` and `compare_performance()` |
 | `effectsize` | Supported | `cohens_d`, `eta_squared`, `cramers_v`, and all `effectsize_table` subclasses |
+| `datawizard` | Supported | `describe_distribution()` — flat and stratified (grouped) output |
 
 ---
 

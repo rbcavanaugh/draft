@@ -27,7 +27,12 @@ Suggests:
     brms,
     glmmTMB,
     modelbased,
-    performance
+    performance,
+    effectsize,
+    datawizard,
+    correlation,
+    tibble,
+    altdoc
 Config/roxygen2/version: 8.0.0
 URL: https://github.com/rbcavanaugh/draft, https://rbcavanaugh.github.io/draft/
 BugReports: https://github.com/rbcavanaugh/draft/issues
