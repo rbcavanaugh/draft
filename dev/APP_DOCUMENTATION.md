@@ -155,14 +155,14 @@ Handles plain data frames and tibbles. Two modes: summary (computed statistics) 
 (direct `$col` access paths).
 
 **Exported functions:**
-- `prep_data(df, cat_threshold)` — summarises each column; columns with `cat_threshold`
+- `prep_data(df, cat_threshold)` — summarizes each column; columns with `cat_threshold`
   or fewer unique non-missing values are treated as categorical (default 10)
 
 **Internal helpers:**
-- `summarise_column(x, cat_threshold)` — dispatches to continuous or categorical
+- `summarize_column(x, cat_threshold)` — dispatches to continuous or categorical
 - `is_categorical(x, cat_threshold)` — classification logic
-- `summarise_continuous(x)` — returns `mean`, `sd`, `median`, `min`, `max`, `n`, `n_missing`
-- `summarise_categorical(x)` — returns `n`, `n_missing`, and per-level `n`/`pct` sub-lists
+- `summarize_continuous(x)` — returns `mean`, `sd`, `median`, `min`, `max`, `n`, `n_missing`
+- `summarize_categorical(x)` — returns `n`, `n_missing`, and per-level `n`/`pct` sub-lists
 - `raw_columns(df, df_name)` — returns a data frame of column paths for raw mode
 - `column_type_label(x)` — returns a short type string for raw mode display
 - `render_summary_chips(summary, base)` — chips for a single column's summary
@@ -293,7 +293,7 @@ No type-specific logic lives here — all dispatch is via the registry.
 **Internal helpers:**
 - `make_fallback_class_label(obj, type)` — class labels for non-handler types
 - `make_fallback_size_label(obj, type)` — size labels for non-handler types
-- `detect_list_subtype(obj)` — categorises named lists as "model_list", "data_list",
+- `detect_list_subtype(obj)` — categorizes named lists as "model_list", "data_list",
   or "generic_list" for the list inspector's bottom preview
 
 ---
@@ -335,7 +335,7 @@ in their respective `class_*.R` files.
 - `value_chip(label, value, path)` — renders a copyable chip: label | value | copy button;
   copy button carries `{path}` as `data-clipboard` attribute
 - `refer_as_bar(list_name)` — "Refer to this object as `list_name$...`" banner
-- `inspector_error(title, msg)` — standardised error display div
+- `inspector_error(title, msg)` — standardized error display div
 - `preview_table(headers, body_rows)` — wraps rows in a standard `.preview-table` structure
 
 **List inspector (non-handler):**
@@ -346,13 +346,13 @@ in their respective `class_*.R` files.
 - `render_model_list_table(obj)` — table for a prep_params-style list
 - `render_data_list_chips(obj, list_name)` — chips for a prep_data-style list
 - `render_data_list_table(obj)` — Variable | Type | Summary table
-- `render_generic_list_chips(obj, list_name)` — flat path chips for unrecognised lists
+- `render_generic_list_chips(obj, list_name)` — flat path chips for unrecognized lists
 
 **Scalar inspector:**
 - `render_scalar_inspector(data)` — single chip showing the value and its name as the path
 
 **Other:**
-- `render_unsupported()` — fallback for unrecognised types
+- `render_unsupported()` — fallback for unrecognized types
 - `render_setup_block(code, list_name)` — copyable setup code block (used by Panel 3)
 
 ---
@@ -484,8 +484,8 @@ full_chunk() reactive fires
 
 ## CSS and JavaScript
 
-- **`inst/www/styles.css`** — three-panel layout, chip styles, table styles, badge colours.
-  Badge colour classes follow the pattern `.badge-{type}` (e.g. `.badge-parameters`,
+- **`inst/www/styles.css`** — three-panel layout, chip styles, table styles, badge colors.
+  Badge color classes follow the pattern `.badge-{type}` (e.g. `.badge-parameters`,
   `.badge-effectsize`, `.badge-datawizard`). `.empty-state-error` styles the red message
   shown when the session environment is empty before sample objects load.
 - **`inst/www/clipboard.js`** — reads `data-clipboard` from buttons; copies to clipboard on click
@@ -714,7 +714,7 @@ test_that("convert_to_rmd produces correct backtick-r syntax", {
 })
 ```
 
-**Case preservation gotcha.** `summarise_categorical()` uses `table()` which preserves
+**Case preservation gotcha.** `summarize_categorical()` uses `table()` which preserves
 original case. Level `"Female"` produces key `"Female"`, not `"female"`. Check actual
 keys with `names(result$col)` before writing string assertions.
 

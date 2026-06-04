@@ -286,7 +286,7 @@ Note that column names with dots (`Sepal.Length`) become compacted keys
 ## Working with data frames
 
 Any `data.frame` or tibble in your environment appears in the environment panel.
-`draft` summarises each column automatically:
+`draft` summarizes each column automatically:
 
 - **Continuous columns** (numeric with more than 10 unique values) — `mean`,
   `sd`, `median`, `min`, `max`, `n`, `n_missing`

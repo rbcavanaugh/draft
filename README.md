@@ -46,7 +46,7 @@ launch_app()
 In the app:
 
 1. **Environment panel (left)**: click `params` to inspect it
-2. **Object inspector (centre)**: see formatted parameter estimates with copyable values
+2. **Object inspector (center)**: see formatted parameter estimates with copyable values
 3. **Text editor (right)**: write prose like:
 
    ```
