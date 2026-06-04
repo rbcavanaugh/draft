@@ -1,5 +1,9 @@
 # draft
 
+[![R-CMD-check](https://github.com/rbcavanaugh/draft/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/rbcavanaugh/draft/actions/workflows/R-CMD-check.yaml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+
 **draft** is an R package that launches a local Shiny app to help you write traceable
 inline results in R Markdown and Quarto documents. It reads live objects from your
 current R session — models, data frames, and single values — and gives you:
