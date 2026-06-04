@@ -2,11 +2,19 @@
 % Please edit documentation in R/classify_objects.R
 \name{list_objects}
 \alias{list_objects}
-\title{List objects in environment}
+\title{List objects in an environment}
 \usage{
 list_objects(env = globalenv())
 }
+\arguments{
+\item{env}{An environment. Defaults to \code{globalenv()}.}
+}
+\value{
+A data frame with columns: \code{name}, \code{type}, \code{class_label},
+\code{size_label}. One row per visible object.
+}
 \description{
-List objects in environment
+Returns a data frame describing all user-visible objects in the given
+environment. Objects whose names start with "." are excluded.
 }
 \keyword{internal}

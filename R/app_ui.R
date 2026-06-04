@@ -30,6 +30,19 @@ app_ui <- function() {
           shiny::div(class = "panel-header",
             shiny::span("Environment")
           ),
+          shiny::div(class = "env-filter-bar",
+            shiny::div(class = "env-search-wrap",
+              shiny::tags$input(
+                id           = "env_search",
+                type         = "text",
+                class        = "env-search",
+                placeholder  = "filter objects...",
+                autocomplete = "off",
+                oninput      = "Shiny.setInputValue('env_search', this.value)"
+              )
+            ),
+            shiny::uiOutput("env_type_filters")
+          ),
           shiny::div(class = "panel-body",
             shiny::uiOutput("env_object_list")
           )

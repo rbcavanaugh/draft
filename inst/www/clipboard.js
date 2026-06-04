@@ -36,6 +36,27 @@ function copyRmdText() {
   });
 }
 
+// Toggle a type-filter badge. Sends the type string to Shiny; clicking the
+// active badge again clears the filter (Shiny handles the toggle logic).
+// Applies .type-filter-badge-active to the clicked button and removes it from
+// all siblings so the UI reflects the current state immediately.
+// Toggle a type-filter badge additively. Each badge can be on or off
+// independently. Sends the full set of active types to Shiny as a
+// comma-separated string (empty string = no filter = show all).
+function draftToggleTypeFilter(btn) {
+  btn.classList.toggle('type-filter-badge-active');
+
+  var allBadges = btn.closest('.env-type-filter-row').querySelectorAll('.type-filter-badge');
+  var active    = [];
+  allBadges.forEach(function(b) {
+    if (b.classList.contains('type-filter-badge-active')) {
+      active.push(b.getAttribute('data-type'));
+    }
+  });
+
+  Shiny.setInputValue('env_type_filter', active.join(','), {priority: 'event'});
+}
+
 // Toggle the settings box when the gear button is clicked.
 // Handled here rather than server-side to avoid a shinyjs dependency.
 document.addEventListener('click', function(e) {

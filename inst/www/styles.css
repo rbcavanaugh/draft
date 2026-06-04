@@ -37,7 +37,7 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sa
   display: flex; flex-direction: column;
   border-right: 1px solid #ddd; overflow: hidden;
 }
-.panel-env       { flex: 1; background: #fff; }
+.panel-env       { flex: 1; background: #fff; display: flex; flex-direction: column; }
 .panel-inspector { flex: 1; background: #fff; }
 .panel-editor    { flex: 1.4; background: #fafafa; border-right: none; }
 
@@ -57,6 +57,40 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sa
   border-radius: 3px; font-size: 13px;
 }
 .btn-refresh:hover, .btn-settings:hover { background: #dde; color: #2c3e50; }
+
+/* ---- Env filter bar ---- */
+.env-filter-bar {
+  padding: 6px 8px 4px;
+  border-bottom: 1px solid #e8e8e8;
+  background: #fff;
+  flex-shrink: 0;
+}
+.env-search-wrap { position: relative; }
+.env-search {
+  width: 100%; padding: 5px 8px;
+  border: 1px solid #d0d0d0; border-radius: 4px;
+  font-size: 12px; color: #2c3e50; background: #fafafa;
+  outline: none;
+}
+.env-search:focus {
+  border-color: #3498db; background: #fff;
+  box-shadow: 0 0 0 2px rgba(52,152,219,0.15);
+}
+.env-search::placeholder { color: #aaa; }
+
+.env-type-filter-row {
+  display: flex; flex-wrap: wrap; gap: 4px;
+  margin-top: 5px;
+}
+.type-filter-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 24px; height: 22px; padding: 0 5px; border-radius: 3px;
+  font-size: 11px; font-weight: 700; color: #fff;
+  border: none; cursor: pointer; opacity: 0.45;
+  transition: opacity 0.12s, box-shadow 0.12s;
+}
+.type-filter-badge:hover        { opacity: 0.75; }
+.type-filter-badge-active       { opacity: 1; box-shadow: 0 0 0 2px rgba(255,255,255,0.6), 0 0 0 3px rgba(0,0,0,0.35); }
 
 /* ---- Object list (Panel 1) ---- */
 .obj-list  { display: flex; flex-direction: column; gap: 2px; }
@@ -83,10 +117,14 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sa
 /* ---- Type badges ---- */
 .type-badge {
   flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
-  width: 20px; height: 20px; border-radius: 3px;
+  min-width: 20px; height: 20px; padding: 0 3px; border-radius: 3px;
   font-size: 11px; font-weight: 700; color: #fff;
 }
 .badge-parameters_model { background: #8e44ad; }
+.badge-datawizard       { background: #2471a3; }
+.badge-effectsize       { background: #d35400; }
+.badge-modelbased       { background: #16a085; }
+.badge-performance      { background: #c0392b; }
 .badge-dataframe        { background: #27ae60; }
 .badge-scalar           { background: #2980b9; }
 .badge-list             { background: #e67e22; }
@@ -193,13 +231,14 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sa
 .inspector-unsupported { padding: 16px; color: #aaa; font-style: italic; }
 
 /* ---- Shared ---- */
-.empty-state { padding: 20px 12px; color: #aaa; font-style: italic; font-size: 13px; }
+.empty-state       { padding: 20px 12px; color: #aaa; font-style: italic; font-size: 13px; }
+.empty-state-error { padding: 20px 12px; color: #c0392b; font-size: 13px; font-weight: 600; }
 .inspector-error { padding: 16px; color: #c0392b; font-size: 13px; }
 
 /* ---- Parameter rows (Panel 2) ---- */
 .inspector-section-title {
   padding: 4px 12px 4px; font-size: 11px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.5px; color: #95a5a6;
+  text-transform: uppercase; letter-spacing: 0.5px; color: #2c3e50;
 }
 .param-list  { display: flex; flex-direction: column; gap: 1px; padding: 0 4px 8px; }
 .param-row   {

@@ -1,9 +1,4 @@
-library(testthat)
-library(shiny)
 library(htmltools)
-
-source(test_path("../../R/delimiters.R"))
-source(test_path("../../R/inline_render.R"))
 
 # Shared test environment with a few values to reference
 test_env <- new.env(parent = baseenv())

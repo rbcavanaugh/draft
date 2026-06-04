@@ -5,7 +5,7 @@ inline results in R Markdown and Quarto documents. It reads live objects from yo
 current R session — models, data frames, and single values — and gives you:
 
 - A browsable view of model parameters and data summaries
-- Copyable inline reference paths (e.g. `{results_m1$age$estimate}`)
+- Copyable inline reference paths (e.g. `{params_$wt$estimate}`)
 - A live-rendering text editor where you type prose and see actual values
 - A one-click setup chunk to paste into your `.qmd` or `.Rmd` file
 
@@ -18,7 +18,7 @@ draft removes the plumbing friction.
 
 ```r
 # Install from GitHub
-remotes::install_github("rbcavanaugh/reproducible-reporting")
+remotes::install_github("rbcavanaugh/draft")
 ```
 
 ---
@@ -44,14 +44,16 @@ In the app:
 
    ```
    Weight was negatively associated with fuel economy
-   (b = {results_params$wt$estimate}, 95% CI {results_params$wt$ci},
-   p = {results_params$wt$p}).
+   (b = {params_$wt$estimate}, 95% CI {params_$wt$ci},
+   p = {params_$wt$p}).
    ```
+
+   The app suggests `params_` as the list name (object name + trailing underscore).
 
 4. Click **Copy inline code** — the copied text uses `` `r expr` `` syntax, ready to
    paste into your `.qmd` or `.Rmd`.
-5. Click **Copy setup chunk** — copies the `library` + `prep_params()` call to put in
-   your document's setup chunk.
+5. Click **Copy setup chunk** — copies the `prep_params()` call to put in your
+   document's setup chunk.
 
 > **Always re-render your full document to confirm results are reproducible.**
 
@@ -77,7 +79,8 @@ results   <- draft::prep_params(params_m1)
 
 Each parameter is a sub-list containing all available formatted fields:
 `estimate`, `se`, `ci`, `ci_low`, `ci_high`, `p` (frequentist) or `pd`, `rope_pct`
-(Bayesian).
+(Bayesian). Works with any model class supported by `parameters::model_parameters()`,
+including correlation matrices.
 
 ### `prep_data(df)`
 
@@ -94,6 +97,59 @@ stats <- draft::prep_data(demo_data)
 
 Continuous columns return `mean`, `sd`, `median`, `min`, `max`, `n`, `n_missing`.
 Categorical columns return `n`, `n_missing`, and per-level `n` and `pct`.
+
+### `prep_modelbased(obj)`
+
+Converts `estimate_means`, `estimate_contrasts`, or `estimate_slopes` objects from
+the `modelbased` package:
+
+```r
+means_ <- draft::prep_modelbased(modelbased::estimate_means(m1, "cyl"))
+# `r means_$x4$mean`, `r means_$x6$mean`, `r means_$x8$mean`
+```
+
+### `prep_performance(obj)`
+
+Converts `model_performance` or `compare_performance` output from the `performance`
+package:
+
+```r
+perf_ <- draft::prep_performance(performance::model_performance(m1))
+# R2 = `r perf_$r2`, RMSE = `r perf_$rmse`
+
+comp_ <- draft::prep_performance(performance::compare_performance(m1, m2))
+# `r comp_$m1$aic` vs `r comp_$m2$aic`
+```
+
+### `prep_effectsize(obj)`
+
+Converts an `effectsize_table` object (e.g. `cohens_d()`, `eta_squared()`, `cramers_v()`) into a named list:
+
+```r
+es_ <- draft::prep_effectsize(effectsize::cohens_d(mpg ~ am, data = mtcars))
+# `r es_$cohens_d`, 95% CI [`r es_$ci_low`, `r es_$ci_high`]
+
+eta_ <- draft::prep_effectsize(effectsize::eta_squared(aov(mpg ~ cyl + gear, mtcars)))
+# `r eta_$cyl$eta2`, `r eta_$gear$eta2`
+```
+
+Single-effect objects return a flat list; multi-effect objects (e.g. `eta_squared` with
+several predictors) return a nested list keyed by the `Parameter` column.
+
+### `prep_distribution(obj)`
+
+Converts `datawizard::describe_distribution()` output into a named list for inline reporting:
+
+```r
+dist_ <- draft::prep_distribution(datawizard::describe_distribution(mtcars))
+# `r dist_$mpg$mean`, SD = `r dist_$mpg$sd`
+
+# With grouping (by argument):
+dist_ <- draft::prep_distribution(datawizard::describe_distribution(iris, by = "Species"))
+# `r dist_$setosa$sepal_length$mean`
+```
+
+Supports both flat (no `by` argument) and stratified (with `by` argument) shapes.
 
 ---
 
@@ -116,7 +172,7 @@ Categorical columns return `n`, `n_missing`, and per-level `n` and `pct`.
 | `shiny` | App framework |
 | `bslib` | UI layout |
 | `parameters` | `model_parameters()` and value formatting |
-| `insight` | Model detection |
+| `insight` | Model detection and value formatting |
 | `dplyr` | Data frame manipulation |
 | `htmltools` | Safe HTML rendering |
 
@@ -130,9 +186,9 @@ Categorical columns return `n`, `n_missing`, and per-level `n` and `pct`.
 |---|---|---|
 | `parameters` | Supported | Core — all model types with a `parameters_model` class |
 | `correlation` | Supported | `correlation()` output inherits `parameters_model` |
-| `modelbased` | Planned | `estimate_means()`, `estimate_contrasts()`, `estimate_slopes()` need a custom inspector |
-| `effectsize` | Planned | `effectsize_table` class needs a custom inspector |
-| `performance` | Planned | `model_performance()` and `compare_performance()` need a custom inspector |
+| `modelbased` | Supported | `estimate_means()`, `estimate_contrasts()`, `estimate_slopes()` |
+| `performance` | Supported | `model_performance()` and `compare_performance()` |
+| `effectsize` | Supported | `cohens_d`, `eta_squared`, `cramers_v`, and all `effectsize_table` subclasses |
 
 ---
 

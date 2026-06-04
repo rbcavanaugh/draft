@@ -1,0 +1,229 @@
+---
+title: "Demo Analysis — Sleep, Cognition, and Anxiety"
+subtitle: "A simulated longitudinal study"
+format: html
+---
+
+## Overview
+
+This is a simulated study examining how sleep quality and anxiety predict
+cognitive performance, with participants measured across two time points.
+The script is designed to populate the draft environment with a variety of
+object types for testing the app.
+
+## Setup
+
+```{r setup}
+#| message: false
+library(lme4)
+library(parameters)
+library(modelbased)
+library(performance)
+library(effectsize)
+library(correlation)
+library(draft)
+
+set.seed(42)
+```
+
+## Simulate data
+
+```{r simulate}
+n_subjects  <- 80
+n_timepoints <- 2
+
+subject_id  <- rep(1:n_subjects, each = n_timepoints)
+time        <- rep(c(0, 1), times = n_subjects)
+
+# Between-person variables
+anxiety     <- rep(rnorm(n_subjects, mean = 10, sd = 3), each = n_timepoints)
+age         <- rep(round(runif(n_subjects, 20, 65)), each = n_timepoints)
+condition   <- rep(sample(c("control", "treatment"), n_subjects, replace = TRUE),
+                   each = n_timepoints)
+
+# Sleep quality (0-10; higher = better); improves slightly with treatment over time
+sleep <- 5 + 0.8 * (condition == "treatment") * time +
+         rnorm(n_subjects * n_timepoints, sd = 1.2)
+sleep <- pmax(0, pmin(10, sleep))
+
+# Cognitive score: driven by sleep, age, anxiety, and random subject intercept
+subject_intercept <- rep(rnorm(n_subjects, sd = 3), each = n_timepoints)
+cognition <- 60 + 2.5 * sleep - 0.15 * age - 0.8 * anxiety +
+             subject_intercept + rnorm(n_subjects * n_timepoints, sd = 4)
+
+# Binary outcome: high performer (cognition above median)
+high_performer <- as.integer(cognition > median(cognition))
+
+df <- data.frame(
+  subject_id     = factor(subject_id),
+  time           = time,
+  condition      = factor(condition, levels = c("control", "treatment")),
+  age            = age,
+  anxiety        = anxiety,
+  sleep          = sleep,
+  cognition      = cognition,
+  high_performer = high_performer
+)
+
+head(df)
+```
+
+## Descriptives
+
+```{r descriptives}
+# Summary of continuous variables at baseline
+baseline <- df[df$time == 0, ]
+desc     <- baseline[, c("age", "anxiety", "sleep", "cognition")]
+```
+
+## Distribution summaries — datawizard
+
+```{r dist-unstratified}
+# Unstratified: flat list keyed by variable name
+# Paths: dist_baseline_$age$mean, dist_baseline_$cognition$sd
+library(datawizard)
+dist_baseline <- describe_distribution(desc)
+dist_baseline
+```
+
+```{r dist-stratified}
+# Stratified by condition: nested list keyed by group then variable
+# Paths: dist_by_condition_$control$age$mean, dist_by_condition_$treatment$cognition$sd
+dist_by_condition <- describe_distribution(
+  baseline[, c("age", "anxiety", "sleep", "cognition", "condition")],
+  by = "condition"
+)
+dist_by_condition
+```
+
+## Correlation matrix
+
+```{r correlations}
+# Pairwise correlations among continuous predictors and outcome (baseline only)
+corr_matrix <- correlation(desc)
+corr_matrix
+```
+
+## Linear model — predictors of cognition (cross-sectional, baseline only)
+
+```{r lm}
+m_lm <- lm(cognition ~ sleep + anxiety + age + condition, data = baseline)
+
+params_lm <- model_parameters(m_lm)
+params_lm
+```
+
+## Linear model — performance
+
+```{r lm-performance}
+perf_lm <- model_performance(m_lm)
+perf_lm
+```
+
+## Effect sizes — linear model predictors
+
+```{r lm-effectsize}
+# Standardized coefficients as effect sizes
+es_std <- effectsize(m_lm)
+es_std
+```
+
+## Marginal means — condition effect on cognition
+
+```{r marginal-means}
+# Estimated marginal means of cognition by condition, holding other vars at mean
+means_condition <- estimate_means(m_lm, at = "condition")
+means_condition
+```
+
+## Contrasts — treatment vs control
+
+```{r contrasts}
+contrasts_condition <- estimate_contrasts(m_lm, contrast = "condition")
+contrasts_condition
+```
+
+## Mixed model — longitudinal (all time points)
+
+```{r glmer}
+# Binary outcome: probability of being a high performer
+# Fixed effects: sleep, anxiety, time, condition
+# Random intercept by subject
+m_glmer <- glmer(
+  high_performer ~ sleep + anxiety + time * condition + (1 | subject_id),
+  data   = df,
+  family = binomial
+)
+
+params_glmer <- model_parameters(m_glmer)
+params_glmer
+```
+
+## Mixed model — performance
+
+```{r glmer-performance}
+perf_glmer <- model_performance(m_glmer)
+perf_glmer
+```
+
+## Model comparison
+
+```{r compare}
+# Null model for comparison
+m_glmer_null <- glmer(
+  high_performer ~ time + (1 | subject_id),
+  data   = df,
+  family = binomial
+)
+
+comparison <- compare_performance(m_glmer_null, m_glmer, rank = TRUE)
+comparison
+```
+
+## Marginal means from mixed model — condition x time
+
+```{r mixed-means}
+means_time_condition <- estimate_means(m_glmer, at = c("condition", "time"))
+means_time_condition
+```
+
+## Marginal slopes — effect of sleep over time
+
+```{r slopes}
+slopes_sleep <- estimate_slopes(m_glmer, trend = "sleep", at = "time")
+slopes_sleep
+```
+
+## Cohen's d — cognition by condition (baseline)
+
+```{r cohens-d}
+es_d <- cohens_d(cognition ~ condition, data = baseline)
+es_d
+```
+
+## Eta-squared — ANOVA decomposition
+
+```{r eta}
+m_aov <- aov(cognition ~ condition + cut(age, 3) + cut(anxiety, 3), data = baseline)
+es_eta <- eta_squared(m_aov)
+es_eta
+```
+
+## Effect size conversions — plain scalars
+
+These return plain numeric values (no special class), so they appear as scalar
+objects in the env panel rather than going through the effectsize handler.
+
+```{r conversions}
+# Convert Cohen's d to Pearson r
+d_as_r <- d_to_r(es_d$Cohens_d)
+
+d_as_r
+```
+
+## Launch the app
+
+```{r launch}
+#| eval: false
+draft::launch_app()
+```

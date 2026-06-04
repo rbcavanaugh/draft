@@ -1,6 +1,6 @@
 # launch_app.R
 #
-# Entry point for the repro package. Captures the calling environment so the
+# Entry point for the draft package. Captures the calling environment so the
 # Shiny app has access to all objects the user has in their R session without
 # requiring them to write any additional code.
 #
@@ -13,7 +13,7 @@
 
 .draft_env <- new.env(parent = emptyenv())
 
-#' Launch the repro inline reporting app
+#' Launch the draft inline reporting app
 #'
 #' Call this from your R session after running your analysis chunks. The app
 #' will have access to all objects in your global environment.

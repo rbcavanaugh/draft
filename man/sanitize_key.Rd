@@ -2,11 +2,22 @@
 % Please edit documentation in R/sanitize.R
 \name{sanitize_key}
 \alias{sanitize_key}
-\title{Sanitize object names}
+\title{Sanitize names into valid R list keys}
 \usage{
 sanitize_key(x)
 }
+\arguments{
+\item{x}{A character vector of names to sanitize.}
+}
+\value{
+A character vector the same length as \code{x}, with unique, valid
+R names.
+}
 \description{
-Sanitize object names
+Converts raw parameter or variable names into clean, valid R list keys
+suitable for use as named-list elements in inline reporting paths.
+Names are lowercased; spaces and non-alphanumeric characters are replaced
+with underscores; leading/trailing underscores are stripped. Duplicate
+keys receive a numeric suffix (\verb{_2}, \verb{_3}, ...) to ensure uniqueness.
 }
 \keyword{internal}

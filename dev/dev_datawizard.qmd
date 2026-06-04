@@ -1,0 +1,79 @@
+---
+title: "dev — datawizard describe_distribution objects"
+format: html
+---
+
+## Setup
+
+```{r setup}
+#| message: false
+library(datawizard)
+library(draft)
+```
+
+## Data
+
+Using `iris` (dot-separated column names) and `mtcars` (no dots) to show how
+`sanitize_key()` handles different naming conventions.
+
+Note: column names with dots (`Sepal.Length`) become `sepallength` (dots stripped).
+Column names with underscores or spaces produce cleaner keys.
+
+## Unstratified — describe_distribution()
+
+Single flat list keyed by variable name.
+Paths: `dist_iris_$sepallength$mean`, `dist_iris_$sepallength$sd`
+
+```{r flat-iris}
+dist_iris <- describe_distribution(iris[, 1:4])
+dist_iris
+```
+
+```{r flat-mtcars}
+# mtcars column names have no dots — keys are cleaner
+dist_mtcars <- describe_distribution(mtcars[, c("mpg", "wt", "hp", "disp")])
+dist_mtcars
+# Paths: dist_mtcars_$mpg$mean, dist_mtcars_$wt$sd
+```
+
+## Stratified — describe_distribution(by = )
+
+Nested list: group → variable → statistic.
+Paths: `dist_by_species_$setosa$sepallength$mean`
+
+```{r stratified-species}
+dist_by_species <- describe_distribution(iris, by = "Species")
+dist_by_species
+```
+
+```{r stratified-cyl}
+# mtcars stratified by number of cylinders
+dist_by_cyl <- describe_distribution(
+  mtcars[, c("mpg", "wt", "hp", "cyl")],
+  by = "cyl"
+)
+dist_by_cyl
+# Paths: dist_by_cyl_$`4`$mpg$mean, dist_by_cyl_$`6`$wt$sd
+# Note: numeric group keys (4, 6, 8) need backtick-quoting in $ paths
+```
+
+## Multiple by variables
+
+```{r stratified-multi}
+# Two grouping variables — keys are pasted together
+mtcars$am_label  <- ifelse(mtcars$am == 1, "manual", "automatic")
+mtcars$cyl_label <- paste0("cyl", mtcars$cyl)
+
+dist_multi <- describe_distribution(
+  mtcars[, c("mpg", "wt", "am_label", "cyl_label")],
+  by = c("am_label", "cyl_label")
+)
+dist_multi
+```
+
+## Launch the app
+
+```{r launch}
+#| eval: false
+draft::launch_app()
+```

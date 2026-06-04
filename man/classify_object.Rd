@@ -2,11 +2,20 @@
 % Please edit documentation in R/classify_objects.R
 \name{classify_object}
 \alias{classify_object}
-\title{Classify object type}
+\title{Classify an object into a draft type string}
 \usage{
 classify_object(obj)
 }
+\arguments{
+\item{obj}{Any R object.}
+}
+\value{
+A single character string: a registered handler type (e.g.
+\code{"parameters_model"}, \code{"dataframe"}) or \code{"scalar"}, \code{"list"}, \code{"other"}.
+}
 \description{
-Classify object type
+Walks the handler registry in priority order and returns the type string
+of the first matching handler. Falls back to \code{"scalar"}, \code{"list"}, or
+\code{"other"} for objects not covered by any registered handler.
 }
 \keyword{internal}

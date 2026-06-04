@@ -6,3 +6,6 @@
 ^build-plan\.md$
 ^requirements\.md$
 ^dev$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

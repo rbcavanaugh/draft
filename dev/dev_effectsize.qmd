@@ -1,0 +1,86 @@
+---
+title: "dev — effectsize objects"
+format: html
+---
+
+## Setup
+
+```{r setup}
+library(effectsize)
+library(draft)
+```
+
+## Data
+
+```{r data}
+# Continuous outcome by group — for difference measures
+# iris for multi-group ANOVA
+# mtcars for binary group (am) and contingency tables
+```
+
+## Difference measures — effectsize_difference
+
+Single-row output. Flat inline paths: `es_d_$cohens_d`, `es_d_$ci_low`, `es_d_$ci_high`.
+
+```{r difference}
+# Cohen's d — continuous outcome by binary group
+es_d  <- cohens_d(mpg ~ am, data = mtcars)
+
+# Hedges' g — bias-corrected version of Cohen's d
+es_g  <- hedges_g(mpg ~ am, data = mtcars)
+
+# Glass's delta — uses only control group SD
+es_gl <- glass_delta(mpg ~ am, data = mtcars)
+
+# Rank-biserial — non-parametric equivalent
+es_rb <- rank_biserial(mpg ~ am, data = mtcars)
+
+es_d
+es_g
+```
+
+## ANOVA effect sizes — effectsize_anova
+
+Multi-row output keyed by predictor. Nested inline paths:
+`es_eta_$cyl$eta2_partial`, `es_eta_$cyl$ci_low`.
+
+```{r anova}
+m_aov <- aov(mpg ~ cyl + gear + am, data = mtcars)
+
+# Partial eta-squared
+es_eta   <- eta_squared(m_aov, partial = TRUE)
+
+# Omega-squared — less biased than eta-squared
+es_omega <- omega_squared(m_aov)
+
+# Epsilon-squared
+es_eps   <- epsilon_squared(m_aov)
+
+es_eta
+es_omega
+```
+
+## Association measures — effectsize_table
+
+Single-row output. Flat inline paths: `es_v_$cramers_v_adjusted`, `es_v_$ci_low`.
+
+```{r association}
+# Cramér's V — strength of association in a contingency table
+es_v   <- cramers_v(table(mtcars$cyl, mtcars$gear))
+
+# Cohen's w — similar to Cramér's V
+es_w   <- cohens_w(table(mtcars$cyl, mtcars$am))
+
+# Phi — 2x2 tables only
+es_phi <- phi(table(mtcars$am, mtcars$vs))
+
+es_v
+es_w
+```
+
+## Launch app
+
+```{r launch}
+#| eval: false
+draft::launch_app()
+```

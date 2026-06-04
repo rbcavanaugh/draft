@@ -1,16 +1,18 @@
-#' Sanitize object names
+#' Sanitize names into valid R list keys
+#'
+#' Converts raw parameter or variable names into clean, valid R list keys
+#' suitable for use as named-list elements in inline reporting paths.
+#' Names are lowercased; spaces and non-alphanumeric characters are replaced
+#' with underscores; leading/trailing underscores are stripped. Duplicate
+#' keys receive a numeric suffix (`_2`, `_3`, ...) to ensure uniqueness.
+#'
+#' @param x A character vector of names to sanitize.
+#'
+#' @return A character vector the same length as `x`, with unique, valid
+#'   R names.
+#'
 #' @export
 #' @keywords internal
-# sanitize_key()
-#
-# Converts raw parameter/variable names from model objects or data frames into
-# clean, valid R list keys:
-#
-#   - Lowercased; spaces and non-alphanumeric characters replaced with underscores
-#   - Leading/trailing underscores stripped after cleaning
-#   - Duplicate keys get a numeric suffix (_2, _3, ...) to ensure uniqueness
-#
-# Returns a character vector the same length as the input.
 
 sanitize_key <- function(x) {
   if (is.null(x) || length(x) == 0) return(character(0))

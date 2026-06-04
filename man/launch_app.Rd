@@ -2,7 +2,7 @@
 % Please edit documentation in R/launch_app.R
 \name{launch_app}
 \alias{launch_app}
-\title{Launch the repro inline reporting app}
+\title{Launch the draft inline reporting app}
 \usage{
 launch_app(env = globalenv(), port = NULL, launch.browser = TRUE)
 }

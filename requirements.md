@@ -71,13 +71,19 @@ The app inspects `globalenv()` at launch and on user-triggered refresh.
 
 | Detected type | Treatment |
 |---|---|
-| Data frame / tibble | Offer summary statistics mode OR raw column-access mode |
-| Model object (has a `model_parameters()` method) | Run `parameters::model_parameters()` |
-| Named list | Expose as-is for navigation |
-| Other | Show in environment panel but flag as unsupported |
+| `parameters_model` | `parameters::model_parameters()` output — nested list keyed by sanitized parameter names |
+| `effectsize_table` | `effectsize` package objects — flat or nested list of effect size values |
+| modelbased (`estimate_means` etc.) | `modelbased` package objects — nested list keyed by group/contrast labels |
+| `parameters_distribution` | `datawizard::describe_distribution()` — flat or stratified nested list |
+| `model_performance` / `compare_performance` | `performance` package objects — flat or model-keyed list |
+| Data frame / tibble | Summary statistics mode OR raw column-access mode |
+| Named list | Exposed as-is for navigation |
+| Other | Shown in environment panel but flagged as unsupported |
 
-Detection of model objects: attempt `parameters::model_parameters()` in a `tryCatch`; fall
-back to raw list access if it fails.
+Detection uses a priority-ordered handler registry (`aaa_handlers.R`). Each class registers
+a `detect` function; `classify_object()` walks handlers in priority order and returns the
+first match. Subclass objects (modelbased, performance, datawizard inherit from `data.frame`)
+must be detected before the dataframe handler — priority values enforce this.
 
 ### `model_parameters()` options exposed in UI
 
@@ -255,25 +261,43 @@ Follows the golem convention (without using golem as a dependency): all R logic 
 ```
 draft/
   R/
+    aaa_handlers.R            # handler registry: register_handler(), get_handler(), get_all_handlers()
+    class_parameters.R        # parameters_model handler + prep_params(), params_df_to_list()
+    class_effectsize.R        # effectsize_table handler + prep_effectsize()
+    class_modelbased.R        # modelbased handler + prep_modelbased()
+    class_datawizard.R        # parameters_distribution handler + prep_distribution()
+    class_performance.R       # model_performance handler + prep_performance()
+    class_dataframe.R         # dataframe handler + prep_data()
     launch_app.R              # launch_app(), get_session_env()
     app_ui.R                  # app_ui() — top-level UI function
     app_server.R              # app_server() — top-level server function
     classify_objects.R        # list_objects(), classify_object()
     render_env_panel.R        # Panel 1 UI rendering helpers
-    render_inspector_panel.R  # Panel 2 UI rendering helpers
+    render_inspector_panel.R  # Panel 2 UI rendering helpers + shared chip helpers
     render_editor_panel.R     # Panel 3 UI rendering helpers
     sanitize.R                # sanitize_key() — internal
-    model_helpers.R           # reserved (currently empty)
-    precompute_models.R       # precompute_model_params() — internal
-    prep_model.R              # prep_params() — EXPORTED
-    prep_data.R               # prep_data() — EXPORTED, raw_columns()
-    code_generator.R          # generate_setup_code()
-    inline_render.R           # render_inline()
+    precompute_models.R       # precompute_model_params() — internal, reserved
+    sample_data.R             # load_sample_objects() — demo data for empty sessions
+    code_generator.R          # suggest_list_name()
+    inline_render.R           # render_inline(), convert_to_rmd(), format_col()
     delimiters.R              # delimiter definitions + copy conversion
   inst/
     www/
       styles.css              # app CSS; loaded via addResourcePath()
       clipboard.js            # copy-to-clipboard JS
+  tests/
+    testthat/
+      test-class-parameters.R
+      test-class-effectsize.R
+      test-class-modelbased.R
+      test-class-datawizard.R
+      test-class-performance.R
+      test-class-dataframe.R
+      test-code-generator.R
+      test-inline-render.R
+      test-prep-data.R
+      test-prep-model.R
+      test-sanitize.R
   DESCRIPTION
   NAMESPACE
 ```
@@ -287,7 +311,7 @@ Key dependencies: `shiny`, `bslib`, `parameters` (easystats), `insight` (easysta
 - `app_server.R` stays minimal; delegates to render helpers and fct helpers
 - Block comment at the top of each function describing purpose and approach;
   line-by-line comments added only when fixing bugs or handling non-obvious edge cases
-- No unit tests in v1
+- Test suite in `tests/testthat/` — one file per class handler
 
 ---
 

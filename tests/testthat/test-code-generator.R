@@ -1,33 +1,47 @@
-library(testthat)
+# test-code-generator.R
+#
+# Tests for suggest_list_name() and handler setup_code functions.
+# Full pipeline coverage is in the per-class test files.
 
-source(test_path("../../R/code_generator.R"))
-
-test_that("suggest_list_name uses results_ prefix for models", {
-  expect_equal(suggest_list_name("m1",        "model"), "results_m1")
-  expect_equal(suggest_list_name("model_age", "model"), "results_model_age")
+test_that("suggest_list_name appends trailing underscore", {
+  expect_equal(suggest_list_name("m1"),        "m1_")
+  expect_equal(suggest_list_name("model_age"), "model_age_")
+  expect_equal(suggest_list_name("demo_data"), "demo_data_")
+  expect_equal(suggest_list_name("perf"),      "perf_")
 })
 
-test_that("suggest_list_name uses stats_ prefix for dataframes", {
-  expect_equal(suggest_list_name("mydata", "dataframe"), "stats_mydata")
-  expect_equal(suggest_list_name("demo",   "dataframe"), "stats_demo")
+test_that("suggest_list_name works with any string", {
+  expect_equal(suggest_list_name("x"), "x_")
 })
 
-test_that("suggest_list_name defaults to model prefix when type omitted", {
-  expect_equal(suggest_list_name("m1"), "results_m1")
+test_that("parameters_model handler setup_code format", {
+  h <- get_handler("parameters_model")
+  expect_equal(
+    h$setup_code("params_m1", "params_m1_"),
+    "params_m1_ <- draft::prep_params(params_m1)"
+  )
 })
 
-test_that("generate_setup_code omits effects arg when fixed (default)", {
-  code <- generate_setup_code("m1", "results_m1", "fixed")
-  expect_equal(code, "results_m1 <- draft::prep_model(m1)")
-  expect_false(grepl("effects", code))
+test_that("dataframe handler setup_code format", {
+  h <- get_handler("dataframe")
+  expect_equal(
+    h$setup_code("my_data", "my_data_"),
+    "my_data_ <- draft::prep_data(my_data)"
+  )
 })
 
-test_that("generate_setup_code includes effects arg for non-fixed", {
-  code <- generate_setup_code("m1", "results_m1", "all")
-  expect_true(grepl('effects = "all"', code, fixed = TRUE))
+test_that("modelbased handler setup_code format", {
+  h <- get_handler("modelbased")
+  expect_equal(
+    h$setup_code("my_means", "my_means_"),
+    "my_means_ <- draft::prep_modelbased(my_means)"
+  )
 })
 
-test_that("generate_data_setup_code produces correct one-liner", {
-  code <- generate_data_setup_code("mydata", "stats_mydata")
-  expect_equal(code, "stats_mydata <- draft::prep_data(mydata)")
+test_that("performance handler setup_code format", {
+  h <- get_handler("performance")
+  expect_equal(
+    h$setup_code("perf_m1", "perf_m1_"),
+    "perf_m1_ <- draft::prep_performance(perf_m1)"
+  )
 })

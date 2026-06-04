@@ -8,6 +8,49 @@
 #   - Each valid expression is replaced by a styled <span> showing its value
 #   - Expressions that fail to evaluate get a red error span with a tooltip
 #
+
+# Formats a scalar value for display. Numeric values are rounded to 2 decimal
+# places with scientific notation suppressed (zap_small). Non-numeric values
+# are coerced to character.
+format_scalar <- function(x) {
+  if (is.numeric(x)) insight::format_value(x, zap_small = TRUE, protect_integers = TRUE) else as.character(x)
+}
+
+# Formats a single numeric value for a named column. P-value columns (named
+# "p", "p_value", "pd", etc.) are routed through insight::format_p() which
+# gives 3 decimal places and "< .001" below the threshold. All other numeric
+# columns use format_value() with 2 decimal places.
+.p_col_pattern <- "^(p|p_value|p\\.value|p_adj|p_adjusted|pd|bf)$"
+
+format_col <- function(val, col_name) {
+  if (grepl(.p_col_pattern, tolower(col_name))) {
+    insight::format_p(val, name = NULL, stars = FALSE)
+  } else {
+    insight::format_value(val, zap_small = TRUE, protect_integers = TRUE)
+  }
+}
+
+# Converts a data frame to a nested named list: one element per row, each
+# element a named list of formatted values keyed by lowercased column name.
+# NA values are silently dropped. Used by every class whose prep function
+# iterates over rows of a numeric data frame (modelbased, effectsize,
+# datawizard, performance).
+#
+# @param df         A data frame.
+# @param keys       Character vector of row keys (length == nrow(df)).
+# @param value_cols Character vector of column names to include as values.
+df_rows_to_list <- function(df, keys, value_cols) {
+  result <- stats::setNames(vector("list", nrow(df)), keys)
+  for (i in seq_len(nrow(df))) {
+    sub <- list()
+    for (col in value_cols) {
+      val <- df[[col]][i]
+      if (!is.na(val)) sub[[tolower(col)]] <- format_col(val, col)
+    }
+    result[[i]] <- sub
+  }
+  result
+}
 # The approach splits the text into alternating plain/expression segments
 # rather than using a single substitution pass, so that HTML-escaping the
 # prose does not interfere with the delimiter patterns.
@@ -71,11 +114,11 @@ render_expression <- function(expr_str, env) {
       }
       # Collapse vectors to a readable string; cap at 5 elements
       if (length(val) > 5) {
-        val <- paste0(paste(val[1:5], collapse = ", "), " ...")
+        val <- paste0(paste(format_scalar(val[1:5]), collapse = ", "), " ...")
       } else {
-        val <- paste(val, collapse = ", ")
+        val <- paste(format_scalar(val), collapse = ", ")
       }
-      paste0('<span class="inline-value">', htmltools::htmlEscape(as.character(val)), '</span>')
+      paste0('<span class="inline-value">', htmltools::htmlEscape(val), '</span>')
     },
     error = function(e) make_error_span(expr_str, conditionMessage(e))
   )

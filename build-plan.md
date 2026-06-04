@@ -134,15 +134,15 @@ write prose, copy, paste into document, re-render document successfully.
 
 ---
 
-## Stage 9 — Documentation + package finalization
+## Stage 9 — Documentation + package finalization ✓ complete
 
 **Goal**: Package is installable from GitHub, has a README, and passes `R CMD check`.
 
 **Files created/touched**:
-- `README.md` — install instructions, 5-minute quickstart, screenshot placeholder
-- `man/` — roxygen docs for `launch_app()` and any exported helpers
-- `DESCRIPTION` — finalize dependencies, version, license
-- `.github/workflows/R-CMD-check.yaml` — CI (optional but recommended)
+- `README.md` — install instructions, 5-minute quickstart, all exported helpers documented
+- `man/` — roxygen docs for all exported functions
+- `DESCRIPTION` — finalized dependencies, version, license
+- `APP_DOCUMENTATION.md` — full architecture reference for the handler registry pattern
 
 **Verification**: Fresh install from GitHub, `launch_app()` works, `R CMD check` passes
 with no errors.
