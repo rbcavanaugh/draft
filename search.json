@@ -1,1 +1,388 @@
-[{"path":"https://rbcavanaugh.github.io/draft/articles/getting-started.html","id":"overview","dir":"Articles","previous_headings":"","what":"Overview","title":"Getting Started with draft","text":"Writing results section means translating R objects prose, keeping prose accurate time data analysis updates, avoiding errors transcribing values data prose. draft local Shiny app makes process systematic. reads objects R environment, structures values stable named lists, gives live text editor inline references resolve type. ’re done writing, copy two things .qmd .Rmd document: small setup chunk rebuilds lists, inline references like params_m1_$wt$coefficient render correctly every time knit. draft leverages easystats suite packages (https://easystats.github.io/easystats/) systematic consistent structure, relatively dependencies, coverage many different model types analytical approaches R. draft also supports reporting bespoke dataframes create values R environment.","code":""},{"path":"https://rbcavanaugh.github.io/draft/articles/getting-started.html","id":"installation","dir":"Articles","previous_headings":"","what":"Installation","title":"Getting Started with draft","text":"draft works best alongside easystats packages. Install ones use:","code":"# Install from GitHub remotes::install_github(\"rbcavanaugh/reproducible-reporting\") install.packages(c(\"parameters\", \"effectsize\", \"modelbased\", \"performance\", \"correlation\"))"},{"path":"https://rbcavanaugh.github.io/draft/articles/getting-started.html","id":"a-simple-workflow","dir":"Articles","previous_headings":"","what":"A simple workflow","title":"Getting Started with draft","text":"workflow three steps: Run analysis normally . Fit models, compute effect sizes, prepare data summaries. Open app calling draft::launch_app(). reads everything current environment. Write copy. Browse objects left panel, write prose editor, copy setup chunk inline references document. Select params_m1 environment panel. inspector shows predictor row copyable chips. Click chip copy path, paste editor, live preview renders value immediately. might write something like: Clicking Copy chunk produces setup code paste document:","code":"library(draft) library(parameters)  m1        <- lm(mpg ~ wt + cyl, data = mtcars) params_m1 <- model_parameters(m1)  launch_app() Weight was negatively associated with fuel economy (b = {params_m1_$wt$coefficient}, 95% CI [{params_m1_$wt$ci_low}, {params_m1_$wt$ci_high}], p = {params_m1_$wt$p}). ``` r params_m1_ <- draft::prep_params(params_m1) ```"},{"path":"https://rbcavanaugh.github.io/draft/articles/getting-started.html","id":"working-with-parameters","dir":"Articles","previous_headings":"","what":"Working with parameters","title":"Getting Started with draft","text":"model_parameters() main entry point regression models. works consistently across lm, glm, lmer, glmer, brms, many others — output always structure, draft handles way. inline path pattern always list_name_$term$field. Field names vary model type — frequentist models produce coefficient p; Bayesian models produce median pd. inspector always shows exact field names specific model — check rather assuming. Correlation matrices correlation package work , since correlation() returns parameters_model object: app doesn’t control statistics. Confidence levels, standardization, options stay script. use 89% CIs instead 95%: Relaunch app changing script see updated values.","code":"library(parameters)  # Linear model params_lm   <- model_parameters(lm(mpg ~ wt + cyl, data = mtcars))  # Logistic regression params_glm  <- model_parameters(glm(am ~ wt + hp, data = mtcars, family = binomial))  # Mixed model library(lme4) params_lmer <- model_parameters(lmer(Reaction ~ Days + (Days | Subject),                                      data = sleepstudy), effects = \"fixed\")  # Bayesian — same workflow, different field names (median, pd instead of coefficient, p) # params_bayes <- model_parameters(brm(...)) library(correlation) corr_matrix <- correlation(mtcars[, 1:4]) # e.g. corr_matrix_$mpg_wt$r, corr_matrix_$mpg_wt$p params_lm_89  <- model_parameters(m1, ci = 0.89) params_lm_std <- model_parameters(m1, standardize = \"refit\")"},{"path":"https://rbcavanaugh.github.io/draft/articles/getting-started.html","id":"working-with-effectsize","dir":"Articles","previous_headings":"","what":"Working with effectsize","title":"Getting Started with draft","text":"Effect size objects come two shapes depending function. Single-effect functions (e.g. cohens_d(), cramers_v()) return single-row result preps flat named list — path goes directly field: Multi-effect functions (e.g. eta_squared() several predictors) return one row per predictor prep nested list keyed predictor name: Conversion functions like d_to_r() return plain numeric scalars rather effectsize objects. appear environment panel scalar values (see Working scalars ).","code":"library(effectsize)  es_d <- cohens_d(mpg ~ am, data = mtcars) # es_d_$cohens_d, es_d_$ci_low, es_d_$ci_high  es_v <- cramers_v(table(mtcars$cyl, mtcars$gear)) # es_v_$cramers_v_adjusted, es_v_$ci_low es_eta <- eta_squared(aov(mpg ~ cyl + gear, data = mtcars)) # es_eta_$cyl$eta2_partial, es_eta_$cyl$ci_low # es_eta_$gear$eta2_partial"},{"path":"https://rbcavanaugh.github.io/draft/articles/getting-started.html","id":"working-with-modelbased","dir":"Articles","previous_headings":"","what":"Working with modelbased","title":"Getting Started with draft","text":"modelbased produces marginal means, contrasts, slopes — prepped named list keyed relevant level comparison. Keys come directly factor level names. Descriptive levels like \"control\" \"treatment\" produce readable paths; numeric levels like 4, 6, 8 need backtick-quoting $ paths — inspector handles automatically click chip.","code":"library(modelbased)  m <- lm(mpg ~ factor(cyl) + wt, data = mtcars)  # Marginal means — one entry per level means_cyl     <- estimate_means(m, at = \"cyl\") # means_cyl_$`4`$mean, means_cyl_$`6`$mean  # Contrasts — keys use the _vs_ pattern contrasts_cyl <- estimate_contrasts(m, contrast = \"cyl\") # contrasts_cyl_$`4_vs_6`$difference, contrasts_cyl_$`4_vs_6`$ci_low  # Marginal slopes m_int      <- lm(mpg ~ wt * factor(cyl), data = mtcars) slopes_wt  <- estimate_slopes(m_int, trend = \"wt\", at = \"cyl\") # slopes_wt_$`4`$coefficient, slopes_wt_$`6`$coefficient"},{"path":"https://rbcavanaugh.github.io/draft/articles/getting-started.html","id":"working-with-performance","dir":"Articles","previous_headings":"","what":"Working with performance","title":"Getting Started with draft","text":"model_performance() returns flat list fit indices single model. compare_performance() returns nested list keyed model name. Available indices depend model type — mixed models include ICC, logistic models include Tjur’s R². inspector shows exactly model provides.","code":"library(performance)  perf_lm    <- model_performance(m1) # perf_lm_$r2, perf_lm_$aic, perf_lm_$rmse  comparison <- compare_performance(   m_null <- lm(mpg ~ 1, data = mtcars),   m_full <- lm(mpg ~ wt + cyl + am, data = mtcars) ) # comparison_$m_full$aic, comparison_$m_full$r2"},{"path":"https://rbcavanaugh.github.io/draft/articles/getting-started.html","id":"working-with-datawizard","dir":"Articles","previous_headings":"","what":"Working with datawizard","title":"Getting Started with draft","text":"datawizard::describe_distribution() produces distribution summary table. draft supports plain (unstratified) stratified (=) forms. Unstratified — one entry per variable, flat list: Stratified — common use: one entry per group, per variable: Multiple variables supported; group keys pasted together _. Note column names dots (Sepal.Length) become compacted keys (sepallength) — check inspector exact key names.","code":"library(datawizard)  dist_baseline <- describe_distribution(df[, c(\"age\", \"anxiety\", \"sleep\")]) # dist_baseline_$age$mean, dist_baseline_$age$sd # dist_baseline_$sleep$median dist_by_condition <- describe_distribution(   df[, c(\"age\", \"sleep\", \"condition\")],   by = \"condition\" ) # dist_by_condition_$control$age$mean # dist_by_condition_$treatment$sleep$sd"},{"path":"https://rbcavanaugh.github.io/draft/articles/getting-started.html","id":"working-with-data-frames","dir":"Articles","previous_headings":"","what":"Working with data frames","title":"Getting Started with draft","text":"data.frame tibble environment appears environment panel. draft summarises column automatically: Continuous columns (numeric 10 unique values) — mean, sd, median, min, max, n, n_missing Categorical columns (factor, character, numeric ≤ 10 unique values) — n n_missing overall, plus n pct per level High-cardinality factor/character columns (e.g. subject IDs, free-text) — excluded; meaningful summary copy threshold continuous categorical defaults 10 unique values can adjusted:","code":"# prep_data() is what the app calls — you can also call it directly desc_ <- draft::prep_data(mtcars)  # desc_$mpg$mean, desc_$mpg$sd # desc_$cyl$`4`$n, desc_$cyl$`4`$pct desc_ <- draft::prep_data(my_df, cat_threshold = 20)"},{"path":"https://rbcavanaugh.github.io/draft/articles/getting-started.html","id":"working-with-scalars","dir":"Articles","previous_headings":"","what":"Working with scalars","title":"Getting Started with draft","text":"single value — numeric, character, logical — assigned variable appears environment panel scalar. setup code needed. Reference directly name prose: Numeric scalars displayed rounded two decimal places. Conversion functions effectsize land :","code":"n_participants <- 120 study_site     <- \"Pittsburgh\"  # {n_participants} participants were recruited from {study_site}. # → 120 participants were recruited from Pittsburgh. es_d   <- cohens_d(mpg ~ am, data = mtcars) d_as_r <- d_to_r(es_d$Cohens_d) # d_as_r appears as a scalar ≈ 0.24"},{"path":"https://rbcavanaugh.github.io/draft/articles/getting-started.html","id":"tips","dir":"Articles","previous_headings":"","what":"Tips","title":"Getting Started with draft","text":"Everything inside {} evaluated R. limited plain variable names — valid R expression works. report proportion percentage, write {my_value * 100}% editor. examples: {abs(b)} drop sign, {n - 1} degrees freedom, {ifelse(p < .05, \"significant\", \"non-significant\")} conditional language. app statistical settings . decisions report — confidence level, effect size type, standardization — live script function arguments. Change relaunch. Check field names inspector. Field names vary model type package version. inspector shows exact names specific object; always check rather relying documentation examples. trailing underscore intentional. prep list params_m1 stored params_m1_. underscore distinguishes original model object prose prevents name collisions. Numeric formatting follows APA style automatically. Non-p values rounded two decimal places scientific notation suppressed. P-values formatted three decimal places < .001 threshold. need round values editor.","code":""},{"path":"https://rbcavanaugh.github.io/draft/authors.html","id":null,"dir":"","previous_headings":"","what":"Authors","title":"Authors and Citation","text":"Rob Cavanaugh. Author, maintainer.","code":""},{"path":"https://rbcavanaugh.github.io/draft/authors.html","id":"citation","dir":"","previous_headings":"","what":"Citation","title":"Authors and Citation","text":"Cavanaugh R (2026). draft: Interactive Inline Reporting Helper R Markdown Quarto. R package version 0.0.1, https://github.com/rbcavanaugh/draft.","code":"@Manual{,   title = {draft: Interactive Inline Reporting Helper for R Markdown and Quarto},   author = {Rob Cavanaugh},   year = {2026},   note = {R package version 0.0.1},   url = {https://github.com/rbcavanaugh/draft}, }"},{"path":"https://rbcavanaugh.github.io/draft/index.html","id":"draft","dir":"","previous_headings":"","what":"Interactive Inline Reporting Helper for R Markdown and Quarto","title":"Interactive Inline Reporting Helper for R Markdown and Quarto","text":"draft R package launches local Shiny app help write traceable inline results R Markdown Quarto documents. reads live objects current R session — models, data frames, single values — gives : browsable view model parameters data summaries Copyable inline reference paths (e.g. {params_$wt$estimate}) live-rendering text editor type prose see actual values one-click setup chunk paste .qmd .Rmd file app write document interpret results. thinking; draft removes plumbing friction.","code":""},{"path":"https://rbcavanaugh.github.io/draft/index.html","id":"installation","dir":"","previous_headings":"","what":"Installation","title":"Interactive Inline Reporting Helper for R Markdown and Quarto","text":"","code":"# Install from GitHub remotes::install_github(\"rbcavanaugh/draft\")"},{"path":"https://rbcavanaugh.github.io/draft/index.html","id":"quick-start","dir":"","previous_headings":"","what":"Quick start","title":"Interactive Inline Reporting Helper for R Markdown and Quarto","text":"app: Environment panel (left) — click params inspect Object inspector (centre) — see formatted parameter estimates copy chips Text editor (right) — write prose like: app suggests params_ list name (object name + trailing underscore). Click Copy inline code — copied text uses `r expr` syntax, ready paste .qmd .Rmd. Click Copy setup chunk — copies prep_params() call put document’s setup chunk. Always re-render full document confirm results reproducible.","code":"library(draft)  # 1. Run your analysis in the normal way m1     <- lm(mpg ~ wt + cyl, data = mtcars) params <- parameters::model_parameters(m1)  # 2. Launch the app — it reads everything in your global environment launch_app() Weight was negatively associated with fuel economy (b = {params_$wt$estimate}, 95% CI {params_$wt$ci}, p = {params_$wt$p})."},{"path":"https://rbcavanaugh.github.io/draft/index.html","id":"standalone-helpers","dir":"","previous_headings":"","what":"Standalone helpers","title":"Interactive Inline Reporting Helper for R Markdown and Quarto","text":"can also use functions directly .qmd setup chunk without launching app:","code":""},{"path":"https://rbcavanaugh.github.io/draft/index.html","id":"prep_paramsparams_obj","dir":"","previous_headings":"Standalone helpers","what":"prep_params(params_obj)","title":"Interactive Inline Reporting Helper for R Markdown and Quarto","text":"Converts parameters_model object nested named list inline reporting: parameter sub-list containing available formatted fields: estimate, se, ci, ci_low, ci_high, p (frequentist) pd, rope_pct (Bayesian). Works model class supported parameters::model_parameters(), including correlation matrices.","code":"# Setup chunk params_m1 <- parameters::model_parameters(m1) results   <- draft::prep_params(params_m1)  # Inline usage # Weight: b = `r results$wt$estimate` (95% CI `r results$wt$ci`, p = `r results$wt$p`)"},{"path":"https://rbcavanaugh.github.io/draft/index.html","id":"prep_datadf","dir":"","previous_headings":"Standalone helpers","what":"prep_data(df)","title":"Interactive Inline Reporting Helper for R Markdown and Quarto","text":"Summarises data frame nested named list demographics reporting: Continuous columns return mean, sd, median, min, max, n, n_missing. Categorical columns return n, n_missing, per-level n pct.","code":"# Setup chunk stats <- draft::prep_data(demo_data)  # Inline usage # Age: M = `r stats$age$mean` (SD = `r stats$age$sd`) # Female: `r stats$sex$female$pct`%"},{"path":"https://rbcavanaugh.github.io/draft/index.html","id":"prep_modelbasedobj","dir":"","previous_headings":"Standalone helpers","what":"prep_modelbased(obj)","title":"Interactive Inline Reporting Helper for R Markdown and Quarto","text":"Converts estimate_means, estimate_contrasts, estimate_slopes objects modelbased package:","code":"means_ <- draft::prep_modelbased(modelbased::estimate_means(m1, \"cyl\")) # `r means_$x4$mean`, `r means_$x6$mean`, `r means_$x8$mean`"},{"path":"https://rbcavanaugh.github.io/draft/index.html","id":"prep_performanceobj","dir":"","previous_headings":"Standalone helpers","what":"prep_performance(obj)","title":"Interactive Inline Reporting Helper for R Markdown and Quarto","text":"Converts model_performance compare_performance output performance package:","code":"perf_ <- draft::prep_performance(performance::model_performance(m1)) # R2 = `r perf_$r2`, RMSE = `r perf_$rmse`  comp_ <- draft::prep_performance(performance::compare_performance(m1, m2)) # `r comp_$m1$aic` vs `r comp_$m2$aic`"},{"path":"https://rbcavanaugh.github.io/draft/index.html","id":"prep_effectsizeobj","dir":"","previous_headings":"Standalone helpers","what":"prep_effectsize(obj)","title":"Interactive Inline Reporting Helper for R Markdown and Quarto","text":"Converts effectsize_table object (e.g. cohens_d(), eta_squared(), cramers_v()) named list: Single-effect objects return flat list; multi-effect objects (e.g. eta_squared several predictors) return nested list keyed Parameter column.","code":"es_ <- draft::prep_effectsize(effectsize::cohens_d(mpg ~ am, data = mtcars)) # `r es_$cohens_d`, 95% CI [`r es_$ci_low`, `r es_$ci_high`]  eta_ <- draft::prep_effectsize(effectsize::eta_squared(aov(mpg ~ cyl + gear, mtcars))) # `r eta_$cyl$eta2`, `r eta_$gear$eta2`"},{"path":"https://rbcavanaugh.github.io/draft/index.html","id":"prep_distributionobj","dir":"","previous_headings":"Standalone helpers","what":"prep_distribution(obj)","title":"Interactive Inline Reporting Helper for R Markdown and Quarto","text":"Converts datawizard::describe_distribution() output named list inline reporting: Supports flat (argument) stratified (argument) shapes.","code":"dist_ <- draft::prep_distribution(datawizard::describe_distribution(mtcars)) # `r dist_$mpg$mean`, SD = `r dist_$mpg$sd`  # With grouping (by argument): dist_ <- draft::prep_distribution(datawizard::describe_distribution(iris, by = \"Species\")) # `r dist_$setosa$sepal_length$mean`"},{"path":"https://rbcavanaugh.github.io/draft/index.html","id":"recommended-workflow","dir":"","previous_headings":"","what":"Recommended workflow","title":"Interactive Inline Reporting Helper for R Markdown and Quarto","text":"Open .qmd / .Rmd run chunks objects globalenv() Call draft::launch_app() Browse parameters inspector; note list paths Write prose text editor; see live-rendered values Copy setup chunk document’s setup block Copy inline code paste document Re-render full document confirm reproducibility","code":""},{"path":[]},{"path":[]},{"path":[]},{"path":"https://rbcavanaugh.github.io/draft/index.html","id":"license","dir":"","previous_headings":"","what":"License","title":"Interactive Inline Reporting Helper for R Markdown and Quarto","text":"MIT","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/classify_object.html","id":null,"dir":"Reference","previous_headings":"","what":"Classify an object into a draft type string — classify_object","title":"Classify an object into a draft type string — classify_object","text":"Walks handler registry priority order returns type string first matching handler. Falls back \"scalar\", \"list\", \"\" objects covered registered handler.","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/classify_object.html","id":"ref-usage","dir":"Reference","previous_headings":"","what":"Usage","title":"Classify an object into a draft type string — classify_object","text":"","code":"classify_object(obj)"},{"path":"https://rbcavanaugh.github.io/draft/reference/classify_object.html","id":"arguments","dir":"Reference","previous_headings":"","what":"Arguments","title":"Classify an object into a draft type string — classify_object","text":"obj R object.","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/classify_object.html","id":"value","dir":"Reference","previous_headings":"","what":"Value","title":"Classify an object into a draft type string — classify_object","text":"single character string: registered handler type (e.g. \"parameters_model\", \"dataframe\") \"scalar\", \"list\", \"\".","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/get_all_handlers.html","id":null,"dir":"Reference","previous_headings":"","what":"Return all registered handlers as a list. — get_all_handlers","title":"Return all registered handlers as a list. — get_all_handlers","text":"Return registered handlers list.","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/get_all_handlers.html","id":"ref-usage","dir":"Reference","previous_headings":"","what":"Usage","title":"Return all registered handlers as a list. — get_all_handlers","text":"","code":"get_all_handlers()"},{"path":"https://rbcavanaugh.github.io/draft/reference/get_handler.html","id":null,"dir":"Reference","previous_headings":"","what":"Retrieve a handler by type string. Returns NULL for unregistered types. — get_handler","title":"Retrieve a handler by type string. Returns NULL for unregistered types. — get_handler","text":"Retrieve handler type string. Returns NULL unregistered types.","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/get_handler.html","id":"ref-usage","dir":"Reference","previous_headings":"","what":"Usage","title":"Retrieve a handler by type string. Returns NULL for unregistered types. — get_handler","text":"","code":"get_handler(type)"},{"path":"https://rbcavanaugh.github.io/draft/reference/get_session_env.html","id":null,"dir":"Reference","previous_headings":"","what":"Retrieve the captured session environment — get_session_env","title":"Retrieve the captured session environment — get_session_env","text":"Used internally app_server access user's objects.","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/get_session_env.html","id":"ref-usage","dir":"Reference","previous_headings":"","what":"Usage","title":"Retrieve the captured session environment — get_session_env","text":"","code":"get_session_env()"},{"path":"https://rbcavanaugh.github.io/draft/reference/launch_app.html","id":null,"dir":"Reference","previous_headings":"","what":"Launch the draft inline reporting app — launch_app","title":"Launch the draft inline reporting app — launch_app","text":"Call R session running analysis chunks. app access objects global environment.","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/launch_app.html","id":"ref-usage","dir":"Reference","previous_headings":"","what":"Usage","title":"Launch the draft inline reporting app — launch_app","text":"","code":"launch_app(env = globalenv(), port = NULL, launch.browser = TRUE)"},{"path":"https://rbcavanaugh.github.io/draft/reference/launch_app.html","id":"arguments","dir":"Reference","previous_headings":"","what":"Arguments","title":"Launch the draft inline reporting app — launch_app","text":"env environment read objects . Defaults globalenv(). port Port run app . Defaults random available port. launch.browser Whether open browser automatically.","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/list_objects.html","id":null,"dir":"Reference","previous_headings":"","what":"List objects in an environment — list_objects","title":"List objects in an environment — list_objects","text":"Returns data frame describing user-visible objects given environment. Objects whose names start \".\" excluded.","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/list_objects.html","id":"ref-usage","dir":"Reference","previous_headings":"","what":"Usage","title":"List objects in an environment — list_objects","text":"","code":"list_objects(env = globalenv())"},{"path":"https://rbcavanaugh.github.io/draft/reference/list_objects.html","id":"arguments","dir":"Reference","previous_headings":"","what":"Arguments","title":"List objects in an environment — list_objects","text":"env environment. Defaults globalenv().","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/list_objects.html","id":"value","dir":"Reference","previous_headings":"","what":"Value","title":"List objects in an environment — list_objects","text":"data frame columns: name, type, class_label, size_label. One row per visible object.","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/params_df_to_list.html","id":null,"dir":"Reference","previous_headings":"","what":"Convert a formatted parameters data frame to a nested list — params_df_to_list","title":"Convert a formatted parameters data frame to a nested list — params_df_to_list","text":"Convert formatted parameters data frame nested list","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/params_df_to_list.html","id":"ref-usage","dir":"Reference","previous_headings":"","what":"Usage","title":"Convert a formatted parameters data frame to a nested list — params_df_to_list","text":"","code":"params_df_to_list(params)"},{"path":"https://rbcavanaugh.github.io/draft/reference/params_df_to_list.html","id":"arguments","dir":"Reference","previous_headings":"","what":"Arguments","title":"Convert a formatted parameters data frame to a nested list — params_df_to_list","text":"params data frame key column formatted value columns.","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/params_df_to_list.html","id":"value","dir":"Reference","previous_headings":"","what":"Value","title":"Convert a formatted parameters data frame to a nested list — params_df_to_list","text":"named list one element per row, keyed key.","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/precompute_model_params.html","id":null,"dir":"Reference","previous_headings":"","what":"Pre-compute model parameters on app startup — precompute_model_params","title":"Pre-compute model parameters on app startup — precompute_model_params","text":"Pre-compute model parameters app startup","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/precompute_model_params.html","id":"ref-usage","dir":"Reference","previous_headings":"","what":"Usage","title":"Pre-compute model parameters on app startup — precompute_model_params","text":"","code":"precompute_model_params(env)"},{"path":"https://rbcavanaugh.github.io/draft/reference/prep_data.html","id":null,"dir":"Reference","previous_headings":"","what":"Prepare a data frame for inline reporting — prep_data","title":"Prepare a data frame for inline reporting — prep_data","text":"Computes summary statistics column returns nested named list suitable inline R Markdown / Quarto reporting.","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/prep_data.html","id":"ref-usage","dir":"Reference","previous_headings":"","what":"Usage","title":"Prepare a data frame for inline reporting — prep_data","text":"","code":"prep_data(df, cat_threshold = 10)"},{"path":"https://rbcavanaugh.github.io/draft/reference/prep_data.html","id":"arguments","dir":"Reference","previous_headings":"","what":"Arguments","title":"Prepare a data frame for inline reporting — prep_data","text":"df data frame tibble. cat_threshold Integer. Numeric/integer columns many fewer unique non-missing values treated categorical. Default 10.","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/prep_data.html","id":"value","dir":"Reference","previous_headings":"","what":"Value","title":"Prepare a data frame for inline reporting — prep_data","text":"named list one element per column, containing formatted summary statistics ready inline use.","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/prep_effectsize.html","id":null,"dir":"Reference","previous_headings":"","what":"Prepare an effectsize object for inline reporting — prep_effectsize","title":"Prepare an effectsize object for inline reporting — prep_effectsize","text":"Converts effectsize_table object named list suitable inline R Markdown / Quarto reporting. Multi-row objects (e.g. eta_squared multiple predictors) keyed Parameter column. Single-row objects (e.g. cohens_d) returned flat named list.","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/prep_effectsize.html","id":"ref-usage","dir":"Reference","previous_headings":"","what":"Usage","title":"Prepare an effectsize object for inline reporting — prep_effectsize","text":"","code":"prep_effectsize(obj)"},{"path":"https://rbcavanaugh.github.io/draft/reference/prep_effectsize.html","id":"arguments","dir":"Reference","previous_headings":"","what":"Arguments","title":"Prepare an effectsize object for inline reporting — prep_effectsize","text":"obj effectsize object inheriting effectsize_table.","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/prep_effectsize.html","id":"value","dir":"Reference","previous_headings":"","what":"Value","title":"Prepare an effectsize object for inline reporting — prep_effectsize","text":"named list formatted character values (single-row objects) nested named list keyed parameter name (multi-row objects).","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/prep_modelbased.html","id":null,"dir":"Reference","previous_headings":"","what":"Prepare a modelbased object for inline reporting — prep_modelbased","title":"Prepare a modelbased object for inline reporting — prep_modelbased","text":"Converts estimate_means, estimate_contrasts, estimate_slopes objects nested named list suitable inline R Markdown / Quarto reporting.","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/prep_modelbased.html","id":"ref-usage","dir":"Reference","previous_headings":"","what":"Usage","title":"Prepare a modelbased object for inline reporting — prep_modelbased","text":"","code":"prep_modelbased(obj)"},{"path":"https://rbcavanaugh.github.io/draft/reference/prep_modelbased.html","id":"arguments","dir":"Reference","previous_headings":"","what":"Arguments","title":"Prepare a modelbased object for inline reporting — prep_modelbased","text":"obj modelbased object (estimate_means, estimate_contrasts, estimate_slopes).","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/prep_modelbased.html","id":"value","dir":"Reference","previous_headings":"","what":"Value","title":"Prepare a modelbased object for inline reporting — prep_modelbased","text":"named list one element per row. element named list formatted values keyed lowercased column name.","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/prep_params.html","id":null,"dir":"Reference","previous_headings":"","what":"Prepare a parameters_model object for inline reporting — prep_params","title":"Prepare a parameters_model object for inline reporting — prep_params","text":"Formats parameters_model object (output parameters::model_parameters()) nested named list suitable inline R Markdown / Quarto reporting.","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/prep_params.html","id":"ref-usage","dir":"Reference","previous_headings":"","what":"Usage","title":"Prepare a parameters_model object for inline reporting — prep_params","text":"","code":"prep_params(params_obj)"},{"path":"https://rbcavanaugh.github.io/draft/reference/prep_params.html","id":"arguments","dir":"Reference","previous_headings":"","what":"Arguments","title":"Prepare a parameters_model object for inline reporting — prep_params","text":"params_obj parameters_model object.","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/prep_params.html","id":"value","dir":"Reference","previous_headings":"","what":"Value","title":"Prepare a parameters_model object for inline reporting — prep_params","text":"named list one element per parameter. element named list formatted strings available fields.","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/prep_performance.html","id":null,"dir":"Reference","previous_headings":"","what":"Prepare a performance object for inline reporting — prep_performance","title":"Prepare a performance object for inline reporting — prep_performance","text":"Converts model_performance compare_performance objects named list suitable inline R Markdown / Quarto reporting.","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/prep_performance.html","id":"ref-usage","dir":"Reference","previous_headings":"","what":"Usage","title":"Prepare a performance object for inline reporting — prep_performance","text":"","code":"prep_performance(obj)"},{"path":"https://rbcavanaugh.github.io/draft/reference/prep_performance.html","id":"arguments","dir":"Reference","previous_headings":"","what":"Arguments","title":"Prepare a performance object for inline reporting — prep_performance","text":"obj performance object (output model_performance() compare_performance()).","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/prep_performance.html","id":"value","dir":"Reference","previous_headings":"","what":"Value","title":"Prepare a performance object for inline reporting — prep_performance","text":"model_performance: flat named list formatted metric values. compare_performance: nested named list keyed model name.","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/register_handler.html","id":null,"dir":"Reference","previous_headings":"","what":"Register a class handler — register_handler","title":"Register a class handler — register_handler","text":"Register class handler","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/register_handler.html","id":"ref-usage","dir":"Reference","previous_headings":"","what":"Usage","title":"Register a class handler — register_handler","text":"","code":"register_handler(   type,   priority = 100L,   badge,   detect,   class_label,   size_label,   context = function(input) list(),   prep,   assign_result = function(result) result,   setup_code,   controls = function(nm, type) NULL,   render )"},{"path":"https://rbcavanaugh.github.io/draft/reference/sanitize_key.html","id":null,"dir":"Reference","previous_headings":"","what":"Sanitize names into valid R list keys — sanitize_key","title":"Sanitize names into valid R list keys — sanitize_key","text":"Converts raw parameter variable names clean, valid R list keys suitable use named-list elements inline reporting paths. Names lowercased; spaces non-alphanumeric characters replaced underscores; leading/trailing underscores stripped. Duplicate keys receive numeric suffix (_2, _3, ...) ensure uniqueness.","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/sanitize_key.html","id":"ref-usage","dir":"Reference","previous_headings":"","what":"Usage","title":"Sanitize names into valid R list keys — sanitize_key","text":"","code":"sanitize_key(x)"},{"path":"https://rbcavanaugh.github.io/draft/reference/sanitize_key.html","id":"arguments","dir":"Reference","previous_headings":"","what":"Arguments","title":"Sanitize names into valid R list keys — sanitize_key","text":"x character vector names sanitize.","code":""},{"path":"https://rbcavanaugh.github.io/draft/reference/sanitize_key.html","id":"value","dir":"Reference","previous_headings":"","what":"Value","title":"Sanitize names into valid R list keys — sanitize_key","text":"character vector length x, unique, valid R names.","code":""}]
+[
+  {
+    "objectID": "vignettes/getting-started.html",
+    "href": "vignettes/getting-started.html",
+    "title": "Getting Started with draft",
+    "section": "",
+    "text": "Writing a results section means translating your R objects into prose, keeping that prose accurate any time your data or analysis updates, and avoiding errors in transcribing values from your data into prose. draft is a local Shiny app that makes this process systematic. It reads objects from your R environment, structures their values into stable named lists, and gives you a live text editor where inline references resolve as you type.\nWhen you’re done writing, you copy two things into your .qmd or .Rmd document: a small setup chunk that rebuilds the lists, and inline references like params_m1_$wt$coefficient that render correctly every time you knit.\ndraft leverages the easystats suite of packages (https://easystats.github.io/easystats/) which have a systematic and consistent structure, relatively few dependencies, and coverage for many different model types and analytical approaches in R. draft also supports reporting of bespoke dataframes you create or other values in your R environment.",
+    "crumbs": [
+      "Articles",
+      "Getting Started with draft"
+    ]
+  },
+  {
+    "objectID": "vignettes/getting-started.html#overview",
+    "href": "vignettes/getting-started.html#overview",
+    "title": "Getting Started with draft",
+    "section": "",
+    "text": "Writing a results section means translating your R objects into prose, keeping that prose accurate any time your data or analysis updates, and avoiding errors in transcribing values from your data into prose. draft is a local Shiny app that makes this process systematic. It reads objects from your R environment, structures their values into stable named lists, and gives you a live text editor where inline references resolve as you type.\nWhen you’re done writing, you copy two things into your .qmd or .Rmd document: a small setup chunk that rebuilds the lists, and inline references like params_m1_$wt$coefficient that render correctly every time you knit.\ndraft leverages the easystats suite of packages (https://easystats.github.io/easystats/) which have a systematic and consistent structure, relatively few dependencies, and coverage for many different model types and analytical approaches in R. draft also supports reporting of bespoke dataframes you create or other values in your R environment.",
+    "crumbs": [
+      "Articles",
+      "Getting Started with draft"
+    ]
+  },
+  {
+    "objectID": "vignettes/getting-started.html#installation",
+    "href": "vignettes/getting-started.html#installation",
+    "title": "Getting Started with draft",
+    "section": "Installation",
+    "text": "Installation\n\n# Install from GitHub\nremotes::install_github(\"rbcavanaugh/draft\")\n\ndraft works best alongside the easystats packages. Install the ones you use:\n\ninstall.packages(c(\"parameters\", \"effectsize\", \"modelbased\", \"performance\", \"correlation\"))",
+    "crumbs": [
+      "Articles",
+      "Getting Started with draft"
+    ]
+  },
+  {
+    "objectID": "vignettes/getting-started.html#a-simple-workflow",
+    "href": "vignettes/getting-started.html#a-simple-workflow",
+    "title": "Getting Started with draft",
+    "section": "A simple workflow",
+    "text": "A simple workflow\nThe workflow has three steps:\n\n\nRun your analysis as you normally would. Fit models, compute effect sizes, prepare data summaries.\n\nOpen the app by calling draft::launch_app(). It reads everything in your current environment.\n\nWrite and copy. Browse your objects in the left panel, write prose in the editor, and copy the setup chunk and inline references into your document.\n\n\nlibrary(draft)\nlibrary(parameters)\n\nm1        &lt;- lm(mpg ~ wt + cyl, data = mtcars)\nparams_m1 &lt;- model_parameters(m1)\n\nlaunch_app()\n\nSelect params_m1 from the environment panel. The inspector shows each predictor as a row of copyable chips. Click a chip to copy the path, paste it into the editor, and the live preview renders the value immediately. You might write something like:\nWeight was negatively associated with fuel economy\n(b = {params_m1_$wt$coefficient}, 95% CI [{params_m1_$wt$ci_low},\n{params_m1_$wt$ci_high}], p = {params_m1_$wt$p}).\nClicking Copy chunk produces the setup code to paste into your document:\n\n::: {.cell}\n\n```{.r .cell-code}\nparams_m1_ &lt;- draft::prep_params(params_m1)\n```\n:::",
+    "crumbs": [
+      "Articles",
+      "Getting Started with draft"
+    ]
+  },
+  {
+    "objectID": "vignettes/getting-started.html#working-with-parameters",
+    "href": "vignettes/getting-started.html#working-with-parameters",
+    "title": "Getting Started with draft",
+    "section": "Working with parameters\n",
+    "text": "Working with parameters\n\nmodel_parameters() is the main entry point for regression models. It works consistently across lm, glm, lmer, glmer, brms, and many others — the output always has the same structure, and draft handles all of them the same way.\n\nlibrary(parameters)\n\n# Linear model\nparams_lm   &lt;- model_parameters(lm(mpg ~ wt + cyl, data = mtcars))\n\n# Logistic regression\nparams_glm  &lt;- model_parameters(glm(am ~ wt + hp, data = mtcars, family = binomial))\n\n# Mixed model\nlibrary(lme4)\nparams_lmer &lt;- model_parameters(lmer(Reaction ~ Days + (Days | Subject),\n                                     data = sleepstudy), effects = \"fixed\")\n\n# Bayesian — same workflow, different field names (median, pd instead of coefficient, p)\n# params_bayes &lt;- model_parameters(brm(...))\n\nThe inline path pattern is always list_name_$term$field. Field names vary by model type — frequentist models produce coefficient and p; Bayesian models produce median and pd. The inspector always shows you the exact field names for your specific model — check there rather than assuming.\nCorrelation matrices from the correlation package work too, since correlation() returns a parameters_model object:\n\nlibrary(correlation)\ncorr_matrix &lt;- correlation(mtcars[, 1:4])\n# e.g. corr_matrix_$mpg_wt$r, corr_matrix_$mpg_wt$p\n\nThe app doesn’t control your statistics. Confidence levels, standardization, and any other options stay in your script. To use 89% CIs instead of 95%:\n\nparams_lm_89  &lt;- model_parameters(m1, ci = 0.89)\nparams_lm_std &lt;- model_parameters(m1, standardize = \"refit\")\n\nRelaunch the app after changing your script to see updated values.",
+    "crumbs": [
+      "Articles",
+      "Getting Started with draft"
+    ]
+  },
+  {
+    "objectID": "vignettes/getting-started.html#working-with-effectsize",
+    "href": "vignettes/getting-started.html#working-with-effectsize",
+    "title": "Getting Started with draft",
+    "section": "Working with effectsize\n",
+    "text": "Working with effectsize\n\nEffect size objects come in two shapes depending on the function.\nSingle-effect functions (e.g. cohens_d(), cramers_v()) return a single-row result that preps into a flat named list — the path goes directly to the field:\n\nlibrary(effectsize)\n\nes_d &lt;- cohens_d(mpg ~ am, data = mtcars)\n# es_d_$cohens_d, es_d_$ci_low, es_d_$ci_high\n\nes_v &lt;- cramers_v(table(mtcars$cyl, mtcars$gear))\n# es_v_$cramers_v_adjusted, es_v_$ci_low\n\nMulti-effect functions (e.g. eta_squared() with several predictors) return one row per predictor and prep into a nested list keyed by predictor name:\n\nes_eta &lt;- eta_squared(aov(mpg ~ cyl + gear, data = mtcars))\n# es_eta_$cyl$eta2_partial, es_eta_$cyl$ci_low\n# es_eta_$gear$eta2_partial\n\nConversion functions like d_to_r() return plain numeric scalars rather than effectsize objects. They appear in the environment panel as scalar values (see Working with scalars below).",
+    "crumbs": [
+      "Articles",
+      "Getting Started with draft"
+    ]
+  },
+  {
+    "objectID": "vignettes/getting-started.html#working-with-modelbased",
+    "href": "vignettes/getting-started.html#working-with-modelbased",
+    "title": "Getting Started with draft",
+    "section": "Working with modelbased\n",
+    "text": "Working with modelbased\n\nmodelbased produces marginal means, contrasts, and slopes — each prepped into a named list keyed by the relevant level or comparison.\n\nlibrary(modelbased)\n\nm &lt;- lm(mpg ~ factor(cyl) + wt, data = mtcars)\n\n# Marginal means — one entry per level\nmeans_cyl     &lt;- estimate_means(m, at = \"cyl\")\n# means_cyl_$`4`$mean, means_cyl_$`6`$mean\n\n# Contrasts — keys use the _vs_ pattern\ncontrasts_cyl &lt;- estimate_contrasts(m, contrast = \"cyl\")\n# contrasts_cyl_$`4_vs_6`$difference, contrasts_cyl_$`4_vs_6`$ci_low\n\n# Marginal slopes\nm_int      &lt;- lm(mpg ~ wt * factor(cyl), data = mtcars)\nslopes_wt  &lt;- estimate_slopes(m_int, trend = \"wt\", at = \"cyl\")\n# slopes_wt_$`4`$coefficient, slopes_wt_$`6`$coefficient\n\nKeys come directly from your factor level names. Descriptive levels like \"control\" and \"treatment\" produce readable paths; numeric levels like 4, 6, 8 need backtick-quoting in $ paths — the inspector handles this automatically when you click a chip.",
+    "crumbs": [
+      "Articles",
+      "Getting Started with draft"
+    ]
+  },
+  {
+    "objectID": "vignettes/getting-started.html#working-with-performance",
+    "href": "vignettes/getting-started.html#working-with-performance",
+    "title": "Getting Started with draft",
+    "section": "Working with performance\n",
+    "text": "Working with performance\n\nmodel_performance() returns a flat list of fit indices for a single model. compare_performance() returns a nested list keyed by model name.\n\nlibrary(performance)\n\nperf_lm    &lt;- model_performance(m1)\n# perf_lm_$r2, perf_lm_$aic, perf_lm_$rmse\n\ncomparison &lt;- compare_performance(\n  m_null &lt;- lm(mpg ~ 1, data = mtcars),\n  m_full &lt;- lm(mpg ~ wt + cyl + am, data = mtcars)\n)\n# comparison_$m_full$aic, comparison_$m_full$r2\n\nAvailable indices depend on the model type — mixed models include ICC, logistic models include Tjur’s R². The inspector shows exactly what your model provides.",
+    "crumbs": [
+      "Articles",
+      "Getting Started with draft"
+    ]
+  },
+  {
+    "objectID": "vignettes/getting-started.html#working-with-datawizard",
+    "href": "vignettes/getting-started.html#working-with-datawizard",
+    "title": "Getting Started with draft",
+    "section": "Working with datawizard\n",
+    "text": "Working with datawizard\n\ndatawizard::describe_distribution() produces a distribution summary table. draft supports both the plain (unstratified) and stratified (by =) forms.\nUnstratified — one entry per variable, flat list:\n\nlibrary(datawizard)\n\ndist_baseline &lt;- describe_distribution(df[, c(\"age\", \"anxiety\", \"sleep\")])\n# dist_baseline_$age$mean, dist_baseline_$age$sd\n# dist_baseline_$sleep$median\n\nStratified — the most common use: one entry per group, then per variable:\n\ndist_by_condition &lt;- describe_distribution(\n  df[, c(\"age\", \"sleep\", \"condition\")],\n  by = \"condition\"\n)\n# dist_by_condition_$control$age$mean\n# dist_by_condition_$treatment$sleep$sd\n\nMultiple by variables are supported; group keys are pasted together with _. Note that column names with dots (Sepal.Length) become compacted keys (sepallength) — check the inspector for the exact key names.",
+    "crumbs": [
+      "Articles",
+      "Getting Started with draft"
+    ]
+  },
+  {
+    "objectID": "vignettes/getting-started.html#working-with-data-frames",
+    "href": "vignettes/getting-started.html#working-with-data-frames",
+    "title": "Getting Started with draft",
+    "section": "Working with data frames",
+    "text": "Working with data frames\nAny data.frame or tibble in your environment appears in the environment panel. draft summarises each column automatically:\n\n\nContinuous columns (numeric with more than 10 unique values) — mean, sd, median, min, max, n, n_missing\n\n\nCategorical columns (factor, character, or numeric with ≤ 10 unique values) — n and n_missing overall, plus n and pct per level\n\nHigh-cardinality factor/character columns (e.g. subject IDs, free-text) — excluded; no meaningful summary to copy\n\n\n# prep_data() is what the app calls — you can also call it directly\ndesc_ &lt;- draft::prep_data(mtcars)\n\n# desc_$mpg$mean, desc_$mpg$sd\n# desc_$cyl$`4`$n, desc_$cyl$`4`$pct\n\nThe threshold between continuous and categorical defaults to 10 unique values and can be adjusted:\n\ndesc_ &lt;- draft::prep_data(my_df, cat_threshold = 20)",
+    "crumbs": [
+      "Articles",
+      "Getting Started with draft"
+    ]
+  },
+  {
+    "objectID": "vignettes/getting-started.html#working-with-scalars",
+    "href": "vignettes/getting-started.html#working-with-scalars",
+    "title": "Getting Started with draft",
+    "section": "Working with scalars",
+    "text": "Working with scalars\nAny single value — numeric, character, or logical — assigned to a variable appears in the environment panel as a scalar. No setup code is needed. Reference it directly by name in your prose:\n\nn_participants &lt;- 120\nstudy_site     &lt;- \"Pittsburgh\"\n\n# {n_participants} participants were recruited from {study_site}.\n# → 120 participants were recruited from Pittsburgh.\n\nNumeric scalars are displayed rounded to two decimal places. Conversion functions from effectsize land here:\n\nes_d   &lt;- cohens_d(mpg ~ am, data = mtcars)\nd_as_r &lt;- d_to_r(es_d$Cohens_d)\n# d_as_r appears as a scalar ≈ 0.24",
+    "crumbs": [
+      "Articles",
+      "Getting Started with draft"
+    ]
+  },
+  {
+    "objectID": "vignettes/getting-started.html#tips",
+    "href": "vignettes/getting-started.html#tips",
+    "title": "Getting Started with draft",
+    "section": "Tips",
+    "text": "Tips\n\nEverything inside {} is evaluated as R. You are not limited to plain variable names — any valid R expression works. To report a proportion as a percentage, write {my_value * 100}% in the editor. Other examples: {abs(b)} to drop a sign, {n - 1} for degrees of freedom, {ifelse(p &lt; .05, \"significant\", \"non-significant\")} for conditional language.\nThe app has no statistical settings of its own. All decisions about what to report — confidence level, effect size type, standardization — live in your script as function arguments. Change them there and relaunch.\nCheck field names in the inspector. Field names vary by model type and package version. The inspector shows the exact names for your specific object; always check there rather than relying on documentation examples.\nThe trailing underscore is intentional. The prep list for params_m1 is stored as params_m1_. The underscore distinguishes it from the original model object in your prose and prevents name collisions.\nNumeric formatting follows APA style automatically. Non-p values are rounded to two decimal places and scientific notation is suppressed. P-values are formatted to three decimal places with &lt; .001 below the threshold. You do not need to round values yourself in the editor.",
+    "crumbs": [
+      "Articles",
+      "Getting Started with draft"
+    ]
+  },
+  {
+    "objectID": "man/prep_modelbased.html",
+    "href": "man/prep_modelbased.html",
+    "title": "draft",
+    "section": "",
+    "text": "Converts estimate_means, estimate_contrasts, or estimate_slopes objects into a nested named list suitable for inline R Markdown / Quarto reporting.\n\n\n\nprep_modelbased(obj)\n\n\n\n\n\n\n\nobj\n\n\nA modelbased object (estimate_means, estimate_contrasts, or estimate_slopes).\n\n\n\n\n\n\nA named list with one element per row. Each element is a named list of formatted values keyed by lowercased column name.",
+    "crumbs": [
+      "Reference",
+      "prep_modelbased"
+    ]
+  },
+  {
+    "objectID": "man/prep_modelbased.html#prepare-a-modelbased-object-for-inline-reporting",
+    "href": "man/prep_modelbased.html#prepare-a-modelbased-object-for-inline-reporting",
+    "title": "draft",
+    "section": "",
+    "text": "Converts estimate_means, estimate_contrasts, or estimate_slopes objects into a nested named list suitable for inline R Markdown / Quarto reporting.\n\n\n\nprep_modelbased(obj)\n\n\n\n\n\n\n\nobj\n\n\nA modelbased object (estimate_means, estimate_contrasts, or estimate_slopes).\n\n\n\n\n\n\nA named list with one element per row. Each element is a named list of formatted values keyed by lowercased column name.",
+    "crumbs": [
+      "Reference",
+      "prep_modelbased"
+    ]
+  },
+  {
+    "objectID": "man/prep_data.html",
+    "href": "man/prep_data.html",
+    "title": "draft",
+    "section": "",
+    "text": "Computes summary statistics for each column and returns a nested named list suitable for inline R Markdown / Quarto reporting.\n\n\n\nprep_data(df, cat_threshold = 10)\n\n\n\n\n\n\n\ndf\n\n\nA data frame or tibble.\n\n\n\n\ncat_threshold\n\n\nInteger. Numeric/integer columns with this many or fewer unique non-missing values are treated as categorical. Default 10.\n\n\n\n\n\n\nA named list with one element per column, each containing formatted summary statistics ready for inline use.",
+    "crumbs": [
+      "Reference",
+      "prep_data"
+    ]
+  },
+  {
+    "objectID": "man/prep_data.html#prepare-a-data-frame-for-inline-reporting",
+    "href": "man/prep_data.html#prepare-a-data-frame-for-inline-reporting",
+    "title": "draft",
+    "section": "",
+    "text": "Computes summary statistics for each column and returns a nested named list suitable for inline R Markdown / Quarto reporting.\n\n\n\nprep_data(df, cat_threshold = 10)\n\n\n\n\n\n\n\ndf\n\n\nA data frame or tibble.\n\n\n\n\ncat_threshold\n\n\nInteger. Numeric/integer columns with this many or fewer unique non-missing values are treated as categorical. Default 10.\n\n\n\n\n\n\nA named list with one element per column, each containing formatted summary statistics ready for inline use.",
+    "crumbs": [
+      "Reference",
+      "prep_data"
+    ]
+  },
+  {
+    "objectID": "man/prep_performance.html",
+    "href": "man/prep_performance.html",
+    "title": "draft",
+    "section": "",
+    "text": "Converts model_performance or compare_performance objects into a named list suitable for inline R Markdown / Quarto reporting.\n\n\n\nprep_performance(obj)\n\n\n\n\n\n\n\nobj\n\n\nA performance object (output of model_performance() or compare_performance()).\n\n\n\n\n\n\nFor model_performance: a flat named list of formatted metric values. For compare_performance: a nested named list keyed by model name.",
+    "crumbs": [
+      "Reference",
+      "prep_performance"
+    ]
+  },
+  {
+    "objectID": "man/prep_performance.html#prepare-a-performance-object-for-inline-reporting",
+    "href": "man/prep_performance.html#prepare-a-performance-object-for-inline-reporting",
+    "title": "draft",
+    "section": "",
+    "text": "Converts model_performance or compare_performance objects into a named list suitable for inline R Markdown / Quarto reporting.\n\n\n\nprep_performance(obj)\n\n\n\n\n\n\n\nobj\n\n\nA performance object (output of model_performance() or compare_performance()).\n\n\n\n\n\n\nFor model_performance: a flat named list of formatted metric values. For compare_performance: a nested named list keyed by model name.",
+    "crumbs": [
+      "Reference",
+      "prep_performance"
+    ]
+  },
+  {
+    "objectID": "CITATION.html",
+    "href": "CITATION.html",
+    "title": "Citation",
+    "section": "",
+    "text": "Citation\nTo cite package ‘draft’ in publications use:\n\nCavanaugh R (????). draft: Interactive Inline Reporting Helper for R Markdown and Quarto. R package version 0.0.1, https://github.com/rbcavanaugh/draft.",
+    "crumbs": [
+      "Citation"
+    ]
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "draft",
+    "section": "",
+    "text": "draft is an R package that launches a local Shiny app to help you write traceable inline results in R Markdown and Quarto documents. It reads live objects from your current R session — models, data frames, and single values — and gives you:\n\nA browsable view of model parameters and data summaries\nCopyable inline reference paths (e.g. {params_$wt$estimate})\nA live-rendering text editor where you type prose and see actual values\nA one-click setup chunk to paste into your .qmd or .Rmd file\n\nThe app does not write to your document or interpret results. You do the thinking; draft removes the plumbing friction.\n\n\n\n# Install from GitHub\nremotes::install_github(\"rbcavanaugh/draft\")\n\n\n\n\nlibrary(draft)\n\n# 1. Run your analysis in the normal way\nm1     &lt;- lm(mpg ~ wt + cyl, data = mtcars)\nparams &lt;- parameters::model_parameters(m1)\n\n# 2. Launch the app — it reads everything in your global environment\nlaunch_app()\nIn the app:\n\nEnvironment panel (left) — click params to inspect it\nObject inspector (centre) — see formatted parameter estimates with copy chips\nText editor (right) — write prose like:\nWeight was negatively associated with fuel economy\n(b = {params_$wt$estimate}, 95% CI {params_$wt$ci},\np = {params_$wt$p}).\nThe app suggests params_ as the list name (object name + trailing underscore).\nClick Copy inline code — the copied text uses `r expr` syntax, ready to paste into your .qmd or .Rmd.\nClick Copy setup chunk — copies the prep_params() call to put in your document’s setup chunk.\n\n\nAlways re-render your full document to confirm results are reproducible.\n\n\n\n\n\nYou can also use these functions directly in a .qmd setup chunk without launching the app:\n\n\nConverts a parameters_model object into a nested named list for inline reporting:\n# Setup chunk\nparams_m1 &lt;- parameters::model_parameters(m1)\nresults   &lt;- draft::prep_params(params_m1)\n\n# Inline usage\n# Weight: b = `r results$wt$estimate` (95% CI `r results$wt$ci`, p = `r results$wt$p`)\nEach parameter is a sub-list containing all available formatted fields: estimate, se, ci, ci_low, ci_high, p (frequentist) or pd, rope_pct (Bayesian). Works with any model class supported by parameters::model_parameters(), including correlation matrices.\n\n\n\nSummarises a data frame into a nested named list for demographics reporting:\n# Setup chunk\nstats &lt;- draft::prep_data(demo_data)\n\n# Inline usage\n# Age: M = `r stats$age$mean` (SD = `r stats$age$sd`)\n# Female: `r stats$sex$female$pct`%\nContinuous columns return mean, sd, median, min, max, n, n_missing. Categorical columns return n, n_missing, and per-level n and pct.\n\n\n\nConverts estimate_means, estimate_contrasts, or estimate_slopes objects from the modelbased package:\nmeans_ &lt;- draft::prep_modelbased(modelbased::estimate_means(m1, \"cyl\"))\n# `r means_$x4$mean`, `r means_$x6$mean`, `r means_$x8$mean`\n\n\n\nConverts model_performance or compare_performance output from the performance package:\nperf_ &lt;- draft::prep_performance(performance::model_performance(m1))\n# R2 = `r perf_$r2`, RMSE = `r perf_$rmse`\n\ncomp_ &lt;- draft::prep_performance(performance::compare_performance(m1, m2))\n# `r comp_$m1$aic` vs `r comp_$m2$aic`\n\n\n\nConverts an effectsize_table object (e.g. cohens_d(), eta_squared(), cramers_v()) into a named list:\nes_ &lt;- draft::prep_effectsize(effectsize::cohens_d(mpg ~ am, data = mtcars))\n# `r es_$cohens_d`, 95% CI [`r es_$ci_low`, `r es_$ci_high`]\n\neta_ &lt;- draft::prep_effectsize(effectsize::eta_squared(aov(mpg ~ cyl + gear, mtcars)))\n# `r eta_$cyl$eta2`, `r eta_$gear$eta2`\nSingle-effect objects return a flat list; multi-effect objects (e.g. eta_squared with several predictors) return a nested list keyed by the Parameter column.\n\n\n\nConverts datawizard::describe_distribution() output into a named list for inline reporting:\ndist_ &lt;- draft::prep_distribution(datawizard::describe_distribution(mtcars))\n# `r dist_$mpg$mean`, SD = `r dist_$mpg$sd`\n\n# With grouping (by argument):\ndist_ &lt;- draft::prep_distribution(datawizard::describe_distribution(iris, by = \"Species\"))\n# `r dist_$setosa$sepal_length$mean`\nSupports both flat (no by argument) and stratified (with by argument) shapes.\n\n\n\n\n\n\nOpen your .qmd / .Rmd and run all chunks so objects are in globalenv()\nCall draft::launch_app()\nBrowse parameters in the inspector; note list paths\nWrite prose in the text editor; see live-rendered values\nCopy the setup chunk into your document’s setup block\nCopy inline code and paste into your document\nRe-render the full document to confirm reproducibility\n\n\n\n\n\n\n\n\nPackage\nPurpose\n\n\n\n\nshiny\nApp framework\n\n\nbslib\nUI layout\n\n\nparameters\nmodel_parameters() and value formatting\n\n\ninsight\nModel detection and value formatting\n\n\ndplyr\nData frame manipulation\n\n\nhtmltools\nSafe HTML rendering\n\n\neffectsize\nEffect size objects (suggested)\n\n\ndatawizard\nDistribution descriptions (suggested)\n\n\nmodelbased\nMarginal means and contrasts (suggested)\n\n\nperformance\nModel performance metrics (suggested)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nPackage\nStatus\nNotes\n\n\n\n\nparameters\nSupported\nCore — all model types with a parameters_model class\n\n\ncorrelation\nSupported\ncorrelation() output inherits parameters_model\n\n\nmodelbased\nSupported\nestimate_means(), estimate_contrasts(), estimate_slopes()\n\n\nperformance\nSupported\nmodel_performance() and compare_performance()\n\n\neffectsize\nSupported\ncohens_d, eta_squared, cramers_v, and all effectsize_table subclasses\n\n\ndatawizard\nSupported\ndescribe_distribution() — flat and stratified (grouped) output\n\n\n\n\n\n\n\n\nMIT",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#installation",
+    "href": "index.html#installation",
+    "title": "draft",
+    "section": "",
+    "text": "# Install from GitHub\nremotes::install_github(\"rbcavanaugh/draft\")",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#quick-start",
+    "href": "index.html#quick-start",
+    "title": "draft",
+    "section": "",
+    "text": "library(draft)\n\n# 1. Run your analysis in the normal way\nm1     &lt;- lm(mpg ~ wt + cyl, data = mtcars)\nparams &lt;- parameters::model_parameters(m1)\n\n# 2. Launch the app — it reads everything in your global environment\nlaunch_app()\nIn the app:\n\nEnvironment panel (left) — click params to inspect it\nObject inspector (centre) — see formatted parameter estimates with copy chips\nText editor (right) — write prose like:\nWeight was negatively associated with fuel economy\n(b = {params_$wt$estimate}, 95% CI {params_$wt$ci},\np = {params_$wt$p}).\nThe app suggests params_ as the list name (object name + trailing underscore).\nClick Copy inline code — the copied text uses `r expr` syntax, ready to paste into your .qmd or .Rmd.\nClick Copy setup chunk — copies the prep_params() call to put in your document’s setup chunk.\n\n\nAlways re-render your full document to confirm results are reproducible.",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#standalone-helpers",
+    "href": "index.html#standalone-helpers",
+    "title": "draft",
+    "section": "",
+    "text": "You can also use these functions directly in a .qmd setup chunk without launching the app:\n\n\nConverts a parameters_model object into a nested named list for inline reporting:\n# Setup chunk\nparams_m1 &lt;- parameters::model_parameters(m1)\nresults   &lt;- draft::prep_params(params_m1)\n\n# Inline usage\n# Weight: b = `r results$wt$estimate` (95% CI `r results$wt$ci`, p = `r results$wt$p`)\nEach parameter is a sub-list containing all available formatted fields: estimate, se, ci, ci_low, ci_high, p (frequentist) or pd, rope_pct (Bayesian). Works with any model class supported by parameters::model_parameters(), including correlation matrices.\n\n\n\nSummarises a data frame into a nested named list for demographics reporting:\n# Setup chunk\nstats &lt;- draft::prep_data(demo_data)\n\n# Inline usage\n# Age: M = `r stats$age$mean` (SD = `r stats$age$sd`)\n# Female: `r stats$sex$female$pct`%\nContinuous columns return mean, sd, median, min, max, n, n_missing. Categorical columns return n, n_missing, and per-level n and pct.\n\n\n\nConverts estimate_means, estimate_contrasts, or estimate_slopes objects from the modelbased package:\nmeans_ &lt;- draft::prep_modelbased(modelbased::estimate_means(m1, \"cyl\"))\n# `r means_$x4$mean`, `r means_$x6$mean`, `r means_$x8$mean`\n\n\n\nConverts model_performance or compare_performance output from the performance package:\nperf_ &lt;- draft::prep_performance(performance::model_performance(m1))\n# R2 = `r perf_$r2`, RMSE = `r perf_$rmse`\n\ncomp_ &lt;- draft::prep_performance(performance::compare_performance(m1, m2))\n# `r comp_$m1$aic` vs `r comp_$m2$aic`\n\n\n\nConverts an effectsize_table object (e.g. cohens_d(), eta_squared(), cramers_v()) into a named list:\nes_ &lt;- draft::prep_effectsize(effectsize::cohens_d(mpg ~ am, data = mtcars))\n# `r es_$cohens_d`, 95% CI [`r es_$ci_low`, `r es_$ci_high`]\n\neta_ &lt;- draft::prep_effectsize(effectsize::eta_squared(aov(mpg ~ cyl + gear, mtcars)))\n# `r eta_$cyl$eta2`, `r eta_$gear$eta2`\nSingle-effect objects return a flat list; multi-effect objects (e.g. eta_squared with several predictors) return a nested list keyed by the Parameter column.\n\n\n\nConverts datawizard::describe_distribution() output into a named list for inline reporting:\ndist_ &lt;- draft::prep_distribution(datawizard::describe_distribution(mtcars))\n# `r dist_$mpg$mean`, SD = `r dist_$mpg$sd`\n\n# With grouping (by argument):\ndist_ &lt;- draft::prep_distribution(datawizard::describe_distribution(iris, by = \"Species\"))\n# `r dist_$setosa$sepal_length$mean`\nSupports both flat (no by argument) and stratified (with by argument) shapes.",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#recommended-workflow",
+    "href": "index.html#recommended-workflow",
+    "title": "draft",
+    "section": "",
+    "text": "Open your .qmd / .Rmd and run all chunks so objects are in globalenv()\nCall draft::launch_app()\nBrowse parameters in the inspector; note list paths\nWrite prose in the text editor; see live-rendered values\nCopy the setup chunk into your document’s setup block\nCopy inline code and paste into your document\nRe-render the full document to confirm reproducibility",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#dependencies",
+    "href": "index.html#dependencies",
+    "title": "draft",
+    "section": "",
+    "text": "Package\nPurpose\n\n\n\n\nshiny\nApp framework\n\n\nbslib\nUI layout\n\n\nparameters\nmodel_parameters() and value formatting\n\n\ninsight\nModel detection and value formatting\n\n\ndplyr\nData frame manipulation\n\n\nhtmltools\nSafe HTML rendering\n\n\neffectsize\nEffect size objects (suggested)\n\n\ndatawizard\nDistribution descriptions (suggested)\n\n\nmodelbased\nMarginal means and contrasts (suggested)\n\n\nperformance\nModel performance metrics (suggested)",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#roadmap",
+    "href": "index.html#roadmap",
+    "title": "draft",
+    "section": "",
+    "text": "Package\nStatus\nNotes\n\n\n\n\nparameters\nSupported\nCore — all model types with a parameters_model class\n\n\ncorrelation\nSupported\ncorrelation() output inherits parameters_model\n\n\nmodelbased\nSupported\nestimate_means(), estimate_contrasts(), estimate_slopes()\n\n\nperformance\nSupported\nmodel_performance() and compare_performance()\n\n\neffectsize\nSupported\ncohens_d, eta_squared, cramers_v, and all effectsize_table subclasses\n\n\ndatawizard\nSupported\ndescribe_distribution() — flat and stratified (grouped) output",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#license",
+    "href": "index.html#license",
+    "title": "draft",
+    "section": "",
+    "text": "MIT",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "LICENSE.html",
+    "href": "LICENSE.html",
+    "title": "draft",
+    "section": "",
+    "text": "YEAR: 2026 COPYRIGHT HOLDER: Rob Cavanaugh",
+    "crumbs": [
+      "License"
+    ]
+  },
+  {
+    "objectID": "man/prep_distribution.html",
+    "href": "man/prep_distribution.html",
+    "title": "draft",
+    "section": "",
+    "text": "Converts a parameters_distribution object (output of datawizard::describe_distribution()) into a nested named list suitable for inline R Markdown / Quarto reporting.\n\n\n\nprep_distribution(obj)\n\n\n\n\n\n\n\nobj\n\n\nA parameters_distribution object.\n\n\n\n\n\n\nWithout stratification: a named list keyed by variable name, each element containing formatted summary statistics. With stratification: a nested named list keyed first by group then by variable name.",
+    "crumbs": [
+      "Reference",
+      "prep_distribution"
+    ]
+  },
+  {
+    "objectID": "man/prep_distribution.html#prepare-a-describe_distribution-object-for-inline-reporting",
+    "href": "man/prep_distribution.html#prepare-a-describe_distribution-object-for-inline-reporting",
+    "title": "draft",
+    "section": "",
+    "text": "Converts a parameters_distribution object (output of datawizard::describe_distribution()) into a nested named list suitable for inline R Markdown / Quarto reporting.\n\n\n\nprep_distribution(obj)\n\n\n\n\n\n\n\nobj\n\n\nA parameters_distribution object.\n\n\n\n\n\n\nWithout stratification: a named list keyed by variable name, each element containing formatted summary statistics. With stratification: a nested named list keyed first by group then by variable name.",
+    "crumbs": [
+      "Reference",
+      "prep_distribution"
+    ]
+  },
+  {
+    "objectID": "man/prep_effectsize.html",
+    "href": "man/prep_effectsize.html",
+    "title": "draft",
+    "section": "",
+    "text": "Converts any effectsize_table object into a named list suitable for inline R Markdown / Quarto reporting. Multi-row objects (e.g. eta_squared with multiple predictors) are keyed by the Parameter column. Single-row objects (e.g. cohens_d) are returned as a flat named list.\n\n\n\nprep_effectsize(obj)\n\n\n\n\n\n\n\nobj\n\n\nAn effectsize object inheriting from effectsize_table.\n\n\n\n\n\n\nA named list of formatted character values (single-row objects) or a nested named list keyed by parameter name (multi-row objects).",
+    "crumbs": [
+      "Reference",
+      "prep_effectsize"
+    ]
+  },
+  {
+    "objectID": "man/prep_effectsize.html#prepare-an-effectsize-object-for-inline-reporting",
+    "href": "man/prep_effectsize.html#prepare-an-effectsize-object-for-inline-reporting",
+    "title": "draft",
+    "section": "",
+    "text": "Converts any effectsize_table object into a named list suitable for inline R Markdown / Quarto reporting. Multi-row objects (e.g. eta_squared with multiple predictors) are keyed by the Parameter column. Single-row objects (e.g. cohens_d) are returned as a flat named list.\n\n\n\nprep_effectsize(obj)\n\n\n\n\n\n\n\nobj\n\n\nAn effectsize object inheriting from effectsize_table.\n\n\n\n\n\n\nA named list of formatted character values (single-row objects) or a nested named list keyed by parameter name (multi-row objects).",
+    "crumbs": [
+      "Reference",
+      "prep_effectsize"
+    ]
+  },
+  {
+    "objectID": "man/prep_params.html",
+    "href": "man/prep_params.html",
+    "title": "draft",
+    "section": "",
+    "text": "Formats a parameters_model object (output of parameters::model_parameters()) into a nested named list suitable for inline R Markdown / Quarto reporting.\n\n\n\nprep_params(params_obj)\n\n\n\n\n\n\n\nparams_obj\n\n\nA parameters_model object.\n\n\n\n\n\n\nA named list with one element per parameter. Each element is itself a named list of formatted strings for all available fields.",
+    "crumbs": [
+      "Reference",
+      "prep_params"
+    ]
+  },
+  {
+    "objectID": "man/prep_params.html#prepare-a-parameters_model-object-for-inline-reporting",
+    "href": "man/prep_params.html#prepare-a-parameters_model-object-for-inline-reporting",
+    "title": "draft",
+    "section": "",
+    "text": "Formats a parameters_model object (output of parameters::model_parameters()) into a nested named list suitable for inline R Markdown / Quarto reporting.\n\n\n\nprep_params(params_obj)\n\n\n\n\n\n\n\nparams_obj\n\n\nA parameters_model object.\n\n\n\n\n\n\nA named list with one element per parameter. Each element is itself a named list of formatted strings for all available fields.",
+    "crumbs": [
+      "Reference",
+      "prep_params"
+    ]
+  },
+  {
+    "objectID": "man/launch_app.html",
+    "href": "man/launch_app.html",
+    "title": "draft",
+    "section": "",
+    "text": "Call this from your R session after running your analysis chunks. The app will have access to all objects in your global environment.\n\n\n\nlaunch_app(env = globalenv(), port = NULL, launch.browser = TRUE)\n\n\n\n\n\n\n\nenv\n\n\nThe environment to read objects from. Defaults to globalenv().\n\n\n\n\nport\n\n\nPort to run the app on. Defaults to a random available port.\n\n\n\n\nlaunch.browser\n\n\nWhether to open a browser automatically.",
+    "crumbs": [
+      "Reference",
+      "launch_app"
+    ]
+  },
+  {
+    "objectID": "man/launch_app.html#launch-the-draft-inline-reporting-app",
+    "href": "man/launch_app.html#launch-the-draft-inline-reporting-app",
+    "title": "draft",
+    "section": "",
+    "text": "Call this from your R session after running your analysis chunks. The app will have access to all objects in your global environment.\n\n\n\nlaunch_app(env = globalenv(), port = NULL, launch.browser = TRUE)\n\n\n\n\n\n\n\nenv\n\n\nThe environment to read objects from. Defaults to globalenv().\n\n\n\n\nport\n\n\nPort to run the app on. Defaults to a random available port.\n\n\n\n\nlaunch.browser\n\n\nWhether to open a browser automatically.",
+    "crumbs": [
+      "Reference",
+      "launch_app"
+    ]
+  }
+]
