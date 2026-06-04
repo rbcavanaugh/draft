@@ -14,7 +14,10 @@ current R session: models, data frames, and single values: and gives you:
 - A one-click setup chunk to paste into your `.qmd` or `.Rmd` file
 
 The app does **not** write to your document or interpret results.
-You still have to do the thinking; draft removes the friction.
+You still have to do the thinking; draft removes the friction. When combined 
+with automatic table creation (e.g., https://gist.github.com/rbcavanaugh/be76e983fdf3a1920fe1f354d73a5a78)
+your results section should be built entirely from your R objects and not manually
+created. 
 
 ---
 
