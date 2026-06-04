@@ -103,6 +103,12 @@ dist_by_condition
 corr_matrix <- correlation(desc)
 corr_matrix
 ```
+```{r}
+corr_matrix_ <- draft::prep_params(corr_matrix)
+```
+
+                
+              
 
 ## Linear model — predictors of cognition (cross-sectional, baseline only)
 

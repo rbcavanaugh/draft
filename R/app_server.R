@@ -252,13 +252,16 @@ app_server <- function(input, output, session) {
     render_inline(text, render_env, delim)
   })
 
-  # Converted text for copy button - always up to date, stored in hidden <pre>
+  # Converted text for copy button - always up to date, stored in hidden <pre>.
+  # suspendWhenHidden = FALSE is required because the <pre> has display:none —
+  # without it Shiny suspends this output and the copy button reads stale/empty text.
   output$rmd_text <- shiny::renderText({
     text <- input$editor_text
     if (is.null(text)) return("")
     delim <- input$delimiter_choice %||% "{}"
     convert_to_rmd(text, delim)
   })
+  shiny::outputOptions(output, "rmd_text", suspendWhenHidden = FALSE)
 
 }
 
